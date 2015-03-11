@@ -23,51 +23,33 @@ object DBManager {
 
   def insertCustomerReview(reviewText: String, reviewSource: String, UPC: String) =
   {
-    val fields = List("review-text", "source", "upc")
-    val values = List(reviewText, reviewSource, UPC)
-    val TN = "customer-review"
-    mySqlAssistant.insertQuery(TN, fields, values)
+
+    mySqlAssistant.insertCustomerReview(reviewText, reviewSource, UPC)
 
   }
 
   def insertExpertReview(websiteName: String, URL: String, UPC: String, title: String)
   {
-    val fields = List("url", "title", "website-name", "upc")
-    val values = List(URL, title, websiteName, UPC)
-    val TN = "expert-review"
-    mySqlAssistant.insertQuery(TN, fields, values)
+    mySqlAssistant.insertExpertReview(websiteName, URL, UPC, title)
 
   }
 
   def insertUserAccount(userName: String, password: String, firstName: String, lastName: String, email: String)
   {
-    val fields = List("username", "password", "firstname", "lastname", "email", "active")
-    val values = List(userName, password, firstName, lastName, email, "0")
-    val TN = "user-account"
-    mySqlAssistant.insertQuery(TN, fields, values)
 
+    mySqlAssistant.insertUserAccount(userName, password, firstName, lastName, email)
   }
 
-  def insertSeller(name: String) : String =
-  {
-      mySqlAssistant.insertQuery("seller", List("name"), List(name), true)
-  }
   def insertWebSeller(name: String, logo: String, URL: String)
   {
-    //inserting seller and retrieving key
-    val key = insertSeller(name)
 
-    //inserting web seller
-    val fields = List("id", "logo", "url")
-    val values = List(key, logo, URL)
-    val TN = "web-based-seller"
-    mySqlAssistant.insertQuery(TN, fields, values)
+    mySqlAssistant.insertWebSeller(name, logo, URL)
 
   }
 
-  def insertWebSellerProduct(UPC : String, Price: Double)
+  def insertWebSellerProduct(UPC : String, Price: Double, URL: String)
   {
-
+    mySqlAssistant.insertCustomerReview()
   }
 
 }

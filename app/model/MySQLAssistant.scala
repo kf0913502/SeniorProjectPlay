@@ -76,16 +76,77 @@ class MySQLAssistant(app : Application) extends DBAssistant{
 
   }
 
-  def insertWebSellerProduct(UPC : String, Price: Double, URL: String)
+  def lookup(TN : String, colA : String, colB : String, valB: String) : List[String] =
   {
-    var rs = stmt.executeQuery("Select id from web-based-seller where url = '" + URL + "'")
-    rs.next()
-    val id = rs.getString("id")
+    val rs = stmt.executeQuery("Select `" + colA + "` from `" + TN + "` where `" + colB + "` = '" + valB + "'")
+
+    var results : List[String] = List()
+    while(rs.next())
+      results = results :+ rs.getString(colA)
+    results
+  }
+
+
+
+
+  def insertProduct(UPC : String, name: String, desc: String, img: String, src: String, category : String)
+  {
+    val categoryID = lookup("product-category", "id", "name", category)(0)
+    val fields = List("upc", "name", "description", "imges", "source", "category-id")
+    val values = List(UPC, name, desc, img, src, categoryID)
+    val TN = "product"
+    insertQuery(TN, fields, values)
+  }
+
+  def insertCategory(name : String, parent : String = "")
+  {
+
+
+    var fields = List("name")
+    var values = List(name)
+    val TN = "product-category"
+
+    var parentID = ""
+    if (parent != "")
+    {
+      parentID = lookup("product-category", "id", "name", parent)(0)
+      fields = fields :+ "parent_id"
+      values = values :+ parentID
+    }
+
+
+    insertQuery(TN, fields, values)
+  }
+
+  def updateProductProperty(attr : String)
+
+  def insertWebSellerProduct(UPC : String, price: Double, URL: String, name: String, desc: String, img: String, category : String)
+  {
+
+   // val res = lookup("product", "id", "upc", UPC). TO DO VERIFY IF PRODUCT ALREADY EXISTS
+    val id = lookup("web-based-seller", "id", "url", URL)(0)
+    insertProduct(UPC, name, desc, img, URL, category)
     val fields = List("price", "upc", "seller_id")
-    val values = List(Price.toString(), UPC, id)
+    val values = List(price.toString(), UPC, id)
     val TN = "seller-product"
     insertQuery(TN, fields, values)
-
   }
+
+
+  def searchProducts(name : String): Map[String, String] =
+  {
+    val rs = stmt.executeQuery("Select name,upc from product where name like '" + name + "%'")
+    var results = scala.collection.immutable.Map[String, String]()
+
+    while(rs.next()) {
+      val key: String = rs.getString("name")
+      val value: String = rs.getString("upc")
+      results = results + (key -> value)
+    }
+
+    results
+  }
+
+  def
 
 }

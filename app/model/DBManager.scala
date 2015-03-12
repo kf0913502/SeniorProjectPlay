@@ -17,8 +17,8 @@ object DBManager {
   {
     //insertExpertReview("Lolinator", "www.lol.com", "12334", "why iphones suck")
     //insertCustomerReview("Lolinator", "www.lol.com", "12334")
-    insertWebSeller("Kariem", "lol", "zors")
-    "DONE"
+    searchProducts("KP%").toString()
+
   }
 
   def insertCustomerReview(reviewText: String, reviewSource: String, UPC: String) =
@@ -47,9 +47,18 @@ object DBManager {
 
   }
 
-  def insertWebSellerProduct(UPC : String, Price: Double, URL: String)
+  def insertWebSellerProduct(UPC : String, price: Double, URL: String, name: String, desc: String, img: String, category : String)
   {
-    mySqlAssistant.insertCustomerReview()
+    mySqlAssistant.insertWebSellerProduct(UPC, price, URL, name, desc, img, category)
   }
 
+  def insertCategory(name : String, parent : String = "")
+  {
+    mySqlAssistant.insertCategory(name, parent)
+  }
+
+  def searchProducts(name : String): Map[String, String] =
+  {
+    mySqlAssistant.searchProducts(name)
+  }
 }

@@ -15,22 +15,22 @@ object DBManager {
   val mySqlAssistant = DBAssistantFactory.instantiate(MySQL).asInstanceOf[MySQLAssistant]
   def test: String =
   {
-    //insertExpertReview("Lolinator", "www.lol.com", "12334", "why iphones suck")
-    //insertCustomerReview("Lolinator", "www.lol.com", "12334")
-    searchProducts("KP%").toString()
+    //insertExpertReview("Lolinator", "www.lol.com", Map("UPC" -> "2555"), "why iphones suck")
+    //insertCustomerReview("Lolinator", "www.lol.com", Map("UPC" -> "2555"))
+   // insertWebSellerProduct(Map("UPC" -> "25555"),"iphone", "Really fucking shiny22", "iphone2232.jpg", "phones", "50000", "www.amazon.com/iphoneLOL", "Amazon", "logo2.jpg", "www.amazon.com")
 
+    //searchProducts("iph").toString()
+    retrieveProduct(Map("UPC" -> "2555")).toString
   }
 
-  def insertCustomerReview(reviewText: String, reviewSource: String, UPC: String) =
+  def insertCustomerReview(reviewText: String, reviewSource: String, productCodes: Map[String, String]) =
   {
-
-    mySqlAssistant.insertCustomerReview(reviewText, reviewSource, UPC)
+    mySqlAssistant.insertCustomerReview(reviewText, reviewSource, productCodes)
 
   }
-
-  def insertExpertReview(websiteName: String, URL: String, UPC: String, title: String)
+  def insertExpertReview(websiteName: String, URL: String, productCodes: Map[String, String], title: String)
   {
-    mySqlAssistant.insertExpertReview(websiteName, URL, UPC, title)
+    mySqlAssistant.insertExpertReview(websiteName, URL, productCodes, title)
 
   }
 
@@ -40,25 +40,19 @@ object DBManager {
     mySqlAssistant.insertUserAccount(userName, password, firstName, lastName, email)
   }
 
-  def insertWebSeller(name: String, logo: String, URL: String)
+
+  def insertWebSellerProduct(productCodes : Map[String, String], name: String, desc: String, img: String, category : String, price : String, listingURL : String, sellerName: String, logo: String, URL: String): Unit =
   {
-
-    mySqlAssistant.insertWebSeller(name, logo, URL)
-
+    mySqlAssistant.insertWebSellerProduct(productCodes, name, desc, img, category, price.toString,listingURL , sellerName ,logo, URL)
   }
 
-  def insertWebSellerProduct(UPC : String, price: Double, URL: String, name: String, desc: String, img: String, category : String)
-  {
-    mySqlAssistant.insertWebSellerProduct(UPC, price, URL, name, desc, img, category)
-  }
-
-  def insertCategory(name : String, parent : String = "")
-  {
-    mySqlAssistant.insertCategory(name, parent)
-  }
-
-  def searchProducts(name : String): Map[String, String] =
+  def searchProducts(name : String): List[Product]  =
   {
     mySqlAssistant.searchProducts(name)
+  }
+
+  def retrieveProduct(codes :  Map[String, String]): Product =
+  {
+    mySqlAssistant.retrieveProduct(codes)
   }
 }

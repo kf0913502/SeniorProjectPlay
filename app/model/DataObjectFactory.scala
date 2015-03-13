@@ -3,7 +3,7 @@ package model
 /**
  * Created by kkk on 3/14/2015.
  */
-
+/*
 sealed trait DataObjectType
 case object Products extends DataObjectType
 case object ExpertReviews extends DataObjectType
@@ -14,11 +14,12 @@ case object Category extends DataObjectType
 
 
 object DataObjectFactory {
-  def instantiate(objectType : DataObjectType)
+  def instantiate(objectType : DataObjectType) : Seq[Any] => DataObject =
   {
+    seq =>
     objectType match
     {
-      case Products => T = Product
     }
   }
 }
+*/

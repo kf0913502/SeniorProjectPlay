@@ -32,19 +32,35 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     else ""
   }
 
-  def insertCustomerReview(reviewText: String, reviewSource: String, UPC: String) =
+  def insertCustomerReview(reviewText: String, reviewSource: String, productCodes: Map[String, String])
   {
-    val fields = List("review-text", "source", "upc")
-    val values = List(reviewText, reviewSource, UPC)
+    val id = productExists(productCodes)
+
+    if (id == "") return
+    val fields = List("review-text", "source", "product-codes")
+    val values = List(reviewText, reviewSource, id)
     val TN = "customer-review"
     insertQuery(TN, fields, values)
 
   }
 
-  def insertExpertReview(websiteName: String, URL: String, UPC: String, title: String)
+  def productExists(productCodes: Map[String, String]) : String =
   {
-    val fields = List("url", "title", "website-name", "upc")
-    val values = List(URL, title, websiteName, UPC)
+    val query = productCodes.map{case (key,value) => key + " = '" + value + "'"}.mkString(" or ")
+    val rs = stmt.executeQuery("select id from `product-codes` where " + query)
+
+    if (rs.next())
+      rs.getString("id")
+    else
+      ""
+  }
+  def insertExpertReview(websiteName: String, URL: String, productCodes: Map[String, String], title: String)
+  {
+    val id = productExists(productCodes)
+
+    if (id == "") return
+    val fields = List("url", "title", "website-name", "product-codes")
+    val values = List(URL, title, websiteName, id)
     val TN = "expert-review"
     insertQuery(TN, fields, values)
 
@@ -63,8 +79,11 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   {
     insertQuery("seller", List("name"), List(name), true)
   }
-  def insertWebSeller(name: String, logo: String, URL: String)
+  def insertWebSeller(name: String, logo: String, URL: String) : String =
   {
+    val ids = lookup("web-based-seller", "id", "url", URL)
+
+    if (ids.length > 0) return ids(0)
     //inserting seller and retrieving key
     val key = insertSeller(name)
 
@@ -73,6 +92,8 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val values = List(key, logo, URL)
     val TN = "web-based-seller"
     insertQuery(TN, fields, values)
+
+    key
 
   }
 
@@ -87,65 +108,102 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   }
 
 
-
-
-  def insertProduct(UPC : String, name: String, desc: String, img: String, src: String, category : String)
+  def insertWebSellerProduct(productCodes : Map[String, String], name: String, desc: String, img: String, category : String, price : String, listingURL : String, sellerName: String, logo: String, URL: String): Unit =
   {
-    val categoryID = lookup("product-category", "id", "name", category)(0)
-    val fields = List("upc", "name", "description", "imges", "source", "category-id")
-    val values = List(UPC, name, desc, img, src, categoryID)
-    val TN = "product"
-    insertQuery(TN, fields, values)
+    val sellerId = insertWebSeller(sellerName, logo, URL)
+    insertProduct(productCodes, name, desc, img, category, price, sellerId, listingURL)
   }
 
-  def insertCategory(name : String, parent : String = "")
+  def insertProduct(productCodes : Map[String, String], name: String, desc: String, img: String, category : String, price : String, sellerID : String, listingURL : String)
   {
-
-
-    var fields = List("name")
-    var values = List(name)
-    val TN = "product-category"
-
-    var parentID = ""
-    if (parent != "")
+    val categories = lookup("product-category", "id", "name", category)
+    var categoryID = ""
+    if (categories.length == 0)
     {
-      parentID = lookup("product-category", "id", "name", parent)(0)
-      fields = fields :+ "parent_id"
-      values = values :+ parentID
+      categoryID = insertQuery("product-category", List("name"), List(category), true)
+    }
+    else categoryID = categories(0)
+
+    val query = productCodes.map{case (key,value) => key + " = '" + value + "'"}.mkString(" or ")
+    val rs = stmt.executeQuery("select id from `product-codes` where " + query)
+
+    var codesID = productExists(productCodes)
+
+    if (codesID == "")
+    {
+      codesID = insertQuery("product-codes", productCodes.keySet.toList, productCodes.values.toList, true)
+      insertQuery("product", List("codes", "name", "category-id"), List(codesID, name, categoryID))
     }
 
 
-    insertQuery(TN, fields, values)
+    insertQuery("images", List("URL", "seller-id", "product-codes-id"), List(img, sellerID,codesID ))
+    insertQuery("desc", List("seller-id", "product-codes", "text"), List(sellerID, codesID, desc))
+
+    insertQuery("seller-product", List("price", "product-codes", "seller_id", "url"), List(price, codesID, sellerID, listingURL))
   }
 
 
-  def insertWebSellerProduct(UPC : String, price: Double, URL: String, name: String, desc: String, img: String, category : String)
+  def retrieveProductcodes(codesID : String) : Map[String, String] =
   {
+    val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
+    val rs = stmt.executeQuery("Select "+ fields.mkString(",") +" from `product-codes` where id ='" + codesID + "'")
+    rs.next()
 
-    val res = lookup("product", "id", "upc", UPC)
-    val id = lookup("web-based-seller", "id", "url", URL)(0)
-
-    insertProduct(UPC, name, desc, img, URL, category)
-    val fields = List("price", "upc", "seller_id")
-    val values = List(price.toString(), UPC, id)
-    val TN = "seller-product"
-    insertQuery(TN, fields, values)
+    fields.filter(x => rs.getString(x) != "").map(x => (x, rs.getString(x))).toMap
   }
 
-
-  def searchProducts(name : String): Map[String, String] =
+  def searchProducts(name : String): List[Product] =
   {
-    val rs = stmt.executeQuery("Select name,upc from product where name like '" + name + "%'")
-    var results = scala.collection.immutable.Map[String, String]()
+    val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
+    val rs = stmt.executeQuery("Select name, " + fields.mkString(",") + " from product,`product-codes` where name like '" + name + "%' and codes = id")
+    var results = List[Product]()
 
     while(rs.next()) {
-      val key: String = rs.getString("name")
-      val value: String = rs.getString("upc")
-      results = results + (key -> value)
+      val value: String = rs.getString("name")
+      val key = fields.filter(x => rs.getString(x) != "").map(x => (x, rs.getString(x))).toMap
+
+      //results = results :+ Product(key, name, "",Category("", "", ""), List(""), List(""),WebPosting(0, "") )
     }
 
     results
   }
+
+
+  def retrieveProduct(codes :  Map[String, String]): Product =
+  {
+    val id = productExists(codes)
+
+    var rs = stmt.executeQuery("Select product.name,date_added, c.name from product,`product-category` c where product.codes = '" + id + "' and `category-id` = id")
+
+    rs.next()
+
+    val name = rs.getString("product.name")
+    val category = rs.getString("c.name")
+    val date = rs.getString("date_added")
+
+    val images = lookup("images", "URL", "product-codes-id", id)
+    val desc = lookup("desc","text","product-codes", id)
+
+    var postings : List[Posting] = List()
+    rs = stmt.executeQuery("select price, logo, w.URL, s.url from `seller-product` s, `web-based-seller` w where `product-codes` ='" + id +  "'and seller_id = w.id")
+    while(rs.next())
+      postings = postings :+ WebPosting(rs.getString("price").toDouble,WebBasedSeller(rs.getString("logo"),rs.getString("w.URL")),rs.getString("s.url"))
+    //TO DO: DO THE SAME FOR LOCAL SELLERS
+
+    var reviews : List[Review] = List()
+
+    rs = stmt.executeQuery("select `review-text`, `date-added`, source from `customer-review` where `product-codes` = '" + id + "'")
+    while(rs.next())
+      reviews = reviews :+ CustomerReview(rs.getString("review-text"),rs.getString("date-added"),rs.getString("source"))
+
+    rs = stmt.executeQuery("select url, title, `website-name` from `expert-review` where `product-codes` = '" + id + "'")
+    while(rs.next())
+      reviews = reviews :+ ExpertReview(rs.getString("url"),rs.getString("title"),rs.getString("website-name"))
+
+    Product(codes,name,date,Category("","",category),images,desc,postings, reviews)
+
+  }
+
 
 
 }

@@ -1,4 +1,5 @@
 package model
+import play.api.libs.json.Json
   /**
    * Created by kkk on 3/14/2015.
    */
@@ -7,15 +8,15 @@ package model
 
   abstract class DataObject
 
-  case class Product(codes: Map[String, String], name: String,dateAdded: String, category: Category, images: List[String], descriptions: List[String], postings : List[Posting], reviews : List[Review]) extends DataObject
+  case class Product(info : ProductInfo, images: List[String], descriptions: List[String],
+                     webPosting : List[WebPosting], localPosting : List[LocalPosting], customerReviews : List[CustomerReview], expertReviews : List[ExpertReview])
 
-   class Posting( price : Double, sellerID : String = "")
-  case class WebPosting( price : Double , seller : WebBasedSeller, URL : String) extends Posting(price)
-  case class LocalPosting(price : Double, location : (Double, Double)) extends Posting(price)
-
-  case class Review()
-  case class ExpertReview( URL: String, title: String,  webSiteName: String, id: String = "") extends Review
-  case class CustomerReview( text: String, dateAdded: String, sourceWebsite: String, id: String = "") extends Review
+  case class ProductInfo(codes : Map[String, String], name : String, category : Category, dateAdded: String = "" )
+  case class WebPosting( price : Double , seller : WebBasedSeller, URL : String)
+  case class LocalPosting(price : Double, location : Location)
+  case class Location(longitutde : Double, latitude : Double)
+  case class ExpertReview( URL: String, title: String,  webSiteName: String, id: String = "")
+  case class CustomerReview( text: String, dateAdded: String, sourceWebsite: String, id: String = "")
 
 
   case class WebBasedSeller( logo: String, URL: String, id: String = "") extends DataObject
@@ -24,3 +25,13 @@ package model
 
   case class Category(id: String, parentId: String, name: String) extends DataObject
 
+  package object jsonWrites {
+    implicit val categoryFormat = Json.writes[Category]
+    implicit val productInfoFormat = Json.writes[ProductInfo]
+    implicit val webSellerFormat = Json.writes[WebBasedSeller]
+    implicit val customerReviewFormat = Json.writes[CustomerReview]
+    implicit val expertReviewFormat = Json.writes[ExpertReview]
+    implicit val locationFormat = Json.writes[Location]
+    implicit val localPostingFormat = Json.writes[LocalPosting]
+    implicit val webPostingFormat = Json.writes[WebPosting]
+  }

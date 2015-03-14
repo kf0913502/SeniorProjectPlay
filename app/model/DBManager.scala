@@ -25,6 +25,7 @@ object DBManager {
 
   def insertCustomerReview(reviewText: String, reviewSource: String, productCodes: Map[String, String]) =
   {
+
     mySqlAssistant.insertCustomerReview(reviewText, reviewSource, productCodes)
 
   }

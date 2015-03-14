@@ -119,13 +119,8 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val categories = lookup("product-category", "id", "name", category)
     var categoryID = ""
     if (categories.length == 0)
-    {
       categoryID = insertQuery("product-category", List("name"), List(category), true)
-    }
     else categoryID = categories(0)
-
-    val query = productCodes.map{case (key,value) => key + " = '" + value + "'"}.mkString(" or ")
-    val rs = stmt.executeQuery("select id from `product-codes` where " + query)
 
     var codesID = productExists(productCodes)
 
@@ -135,13 +130,37 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       insertQuery("product", List("codes", "name", "category-id"), List(codesID, name, categoryID))
     }
 
-
+    if (img != "")
     insertQuery("images", List("URL", "seller-id", "product-codes-id"), List(img, sellerID,codesID ))
+
+    if (desc != "")
     insertQuery("desc", List("seller-id", "product-codes", "text"), List(sellerID, codesID, desc))
 
+    if (price != "")
     insertQuery("seller-product", List("price", "product-codes", "seller_id", "url"), List(price, codesID, sellerID, listingURL))
   }
 
+  def insertWebSellerProductInfo(sellerName : String, logo : String, URL : String, category : Category): Unit =
+  {
+    /*val sellerId = insertWebSeller(sellerName, logo, URL)
+    val categories = lookup("product-category", "id", "name", category)
+    var categoryID = ""
+    if (categories.length == 0)
+      categoryID = insertQuery("product-category", List("name"), List(category), true)
+    else categoryID = categories(0)
+
+    var codesID = productExists(productCodes)
+
+    if (codesID == "")
+    {
+      codesID = insertQuery("product-codes", productCodes.keySet.toList, productCodes.values.toList, true)
+      insertQuery("product", List("codes", "name", "category-id"), List(codesID, name, categoryID))
+    }
+
+    */
+
+
+  }
 
   def retrieveProductcodes(codesID : String) : Map[String, String] =
   {
@@ -184,23 +203,25 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val images = lookup("images", "URL", "product-codes-id", id)
     val desc = lookup("desc","text","product-codes", id)
 
-    var postings : List[Posting] = List()
+    var postings : List[WebPosting] = List()
     rs = stmt.executeQuery("select price, logo, w.URL, s.url from `seller-product` s, `web-based-seller` w where `product-codes` ='" + id +  "'and seller_id = w.id")
     while(rs.next())
       postings = postings :+ WebPosting(rs.getString("price").toDouble,WebBasedSeller(rs.getString("logo"),rs.getString("w.URL")),rs.getString("s.url"))
     //TO DO: DO THE SAME FOR LOCAL SELLERS
 
-    var reviews : List[Review] = List()
+    var customerReviews : List[CustomerReview] = List()
 
     rs = stmt.executeQuery("select `review-text`, `date-added`, source from `customer-review` where `product-codes` = '" + id + "'")
     while(rs.next())
-      reviews = reviews :+ CustomerReview(rs.getString("review-text"),rs.getString("date-added"),rs.getString("source"))
+      customerReviews = customerReviews :+ CustomerReview(rs.getString("review-text"),rs.getString("date-added"),rs.getString("source"))
 
+
+    var expertReviews : List[ExpertReview] = List()
     rs = stmt.executeQuery("select url, title, `website-name` from `expert-review` where `product-codes` = '" + id + "'")
     while(rs.next())
-      reviews = reviews :+ ExpertReview(rs.getString("url"),rs.getString("title"),rs.getString("website-name"))
+      expertReviews = expertReviews :+ ExpertReview(rs.getString("url"),rs.getString("title"),rs.getString("website-name"))
 
-    Product(codes,name,date,Category("","",category),images,desc,postings, reviews)
+    Product(ProductInfo(codes,name,Category("","",category), date),images,desc,postings,List(),customerReviews,expertReviews)
 
   }
 

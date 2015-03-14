@@ -6,7 +6,7 @@ import java.sql.Statement
 /**
  * Created by kkk on 3/12/2015.
  */
-class MySQLAssistant(app : Application) extends DBAssistant{
+case class MySQLAssistant(app : Application) extends DBAssistant{
 
   val db = DB.getConnection()(app)
   val stmt = db.createStatement
@@ -118,13 +118,13 @@ class MySQLAssistant(app : Application) extends DBAssistant{
     insertQuery(TN, fields, values)
   }
 
-  def updateProductProperty(attr : String)
 
   def insertWebSellerProduct(UPC : String, price: Double, URL: String, name: String, desc: String, img: String, category : String)
   {
 
-   // val res = lookup("product", "id", "upc", UPC). TO DO VERIFY IF PRODUCT ALREADY EXISTS
+    val res = lookup("product", "id", "upc", UPC)
     val id = lookup("web-based-seller", "id", "url", URL)(0)
+
     insertProduct(UPC, name, desc, img, URL, category)
     val fields = List("price", "upc", "seller_id")
     val values = List(price.toString(), UPC, id)
@@ -147,6 +147,5 @@ class MySQLAssistant(app : Application) extends DBAssistant{
     results
   }
 
-  def
 
 }

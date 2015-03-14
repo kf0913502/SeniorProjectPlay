@@ -13,7 +13,7 @@ object DBAssistantFactory {
   def instantiate(assistantType : AssistantType)(implicit app : Application) : DBAssistant =
   {
     assistantType match{
-      case MySQL => new MySQLAssistant(app)
+      case MySQL =>  MySQLAssistant(app)
     }
   }
 

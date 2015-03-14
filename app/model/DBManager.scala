@@ -56,4 +56,24 @@ object DBManager {
   {
     mySqlAssistant.retrieveProduct(codes)
   }
+
+  def insertWebSellerImage(codes : Map[String, String] , URL : String, img : String): Unit =
+  {
+    insertWebSellerProduct(codes,URL,"",img,"","","","","","")
+  }
+
+  def insertWebSellerDesc(codes : Map[String, String], URL: String, desc : String): Unit =
+  {
+    //insertWebSellerProduct(co)
+  }
+
+  def insertWebSellerProductInfo(codes : Map[String, String], URL: String, info : ProductInfo): Unit =
+  {
+
+  }
+
+  def insertWebSellerPosting(codes : Map[String, String], URL: String,posting : WebPosting): Unit =
+  {
+
+  }
 }

@@ -75,6 +75,10 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   }
 
+  def insertWebSellerImage(codes : Map[String, String] , URL : String, img : String): Unit =
+  {
+
+  }
   def insertSeller(name: String) : String =
   {
     insertQuery("seller", List("name"), List(name), true)
@@ -181,7 +185,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       val value: String = rs.getString("name")
       val key = fields.filter(x => rs.getString(x) != "").map(x => (x, rs.getString(x))).toMap
 
-      //results = results :+ Product(key, name, "",Category("", "", ""), List(""), List(""),WebPosting(0, "") )
+      results = results :+ Product(ProductInfo(key, name,Category("", "", "")), List(""), List(""),List(),List() ,List(),List())
     }
 
     results
@@ -213,7 +217,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
     rs = stmt.executeQuery("select `review-text`, `date-added`, source from `customer-review` where `product-codes` = '" + id + "'")
     while(rs.next())
-      customerReviews = customerReviews :+ CustomerReview(rs.getString("review-text"),rs.getString("date-added"),rs.getString("source"))
+      customerReviews = customerReviews :+ CustomerReview("",rs.getString("review-text"),rs.getString("date-added"),rs.getString("source"))
 
 
     var expertReviews : List[ExpertReview] = List()

@@ -16,7 +16,7 @@ import play.api.libs.json.Json
   case class LocalPosting(price : Double, location : Location)
   case class Location(longitutde : Double, latitude : Double)
   case class ExpertReview( URL: String, title: String,  webSiteName: String, id: String = "")
-  case class CustomerReview( text: String, dateAdded: String, sourceWebsite: String, id: String = "")
+  case class CustomerReview(title : String,  text: String, dateAdded: String, sourceWebsite: String, id: String = "")
 
 
   case class WebBasedSeller( logo: String, URL: String, id: String = "") extends DataObject
@@ -34,4 +34,16 @@ import play.api.libs.json.Json
     implicit val locationFormat = Json.writes[Location]
     implicit val localPostingFormat = Json.writes[LocalPosting]
     implicit val webPostingFormat = Json.writes[WebPosting]
+    implicit val barFormat = Json.writes[Product]
+
+    implicit val RcategoryFormat = Json.reads[Category]
+    implicit val RproductInfoFormat = Json.reads[ProductInfo]
+    implicit val RwebSellerFormat = Json.reads[WebBasedSeller]
+    implicit val RcustomerReviewFormat = Json.reads[CustomerReview]
+    implicit val RexpertReviewFormat = Json.reads[ExpertReview]
+    implicit val RlocationFormat = Json.reads[Location]
+    implicit val RlocalPostingFormat = Json.reads[LocalPosting]
+    implicit val RwebPostingFormat = Json.reads[WebPosting]
+    implicit val RbarFormat = Json.reads[Product]
+
   }

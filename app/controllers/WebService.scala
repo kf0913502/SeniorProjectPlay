@@ -1,10 +1,30 @@
 package controllers
 
 import play.api.mvc.Controller
-
+import play.api._
+import play.api._
+import play.api.mvc._
+import play.api.data._
+import play.api.data.Forms._
+import model._
+import play.api.libs.json.{Json, JsError}
+import model.jsonWrites._
 /**
  * Created by kkk on 3/8/2015.
  */
 object WebService extends Controller{
+
+  def searchProduct(name : String) = Action{
+
+    Ok(Json.toJson(DBManager.searchProducts("iph")))
+  }
+
+
+  def getProduct(code : String, codeType : String) = Action{
+
+    Ok(Json.toJson(DBManager.retrieveProduct(Map(codeType -> code))))
+  }
+
+
 
 }

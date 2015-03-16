@@ -16,13 +16,13 @@ object WebService extends Controller{
 
   def searchProduct(name : String) = Action{
 
-    Ok(Json.toJson(DBManager.searchProducts("iph")))
+    Ok(Json.toJson(DataCollection_DBManager.searchProducts("iph")))
   }
 
 
   def getProduct(code : String, codeType : String) = Action{
 
-    Ok(Json.toJson(DBManager.retrieveProduct(Map(codeType -> code))))
+    Ok(Json.toJson(DataCollection_DBManager.retrieveProduct(Map(codeType -> code))))
   }
 
 

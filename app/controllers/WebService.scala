@@ -15,7 +15,7 @@ object WebService extends Controller{
 
   def searchProduct(name : String) = Action{
 
-    Ok(Json.toJson(APP_DBManager.searchProducts("iph")))
+    Ok(Json.toJson(APP_DBManager.searchProducts(name)))
   }
 
 

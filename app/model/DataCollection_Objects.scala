@@ -19,4 +19,6 @@ package object DataCollectionModel {
 
   case class WebSeller(URL : String, logo : String, name : String)
 
+  case class offer(codes : List[Map[String, String]], sellerURL : String, price : String, desc : String, startDate : String, endDate : String, viewCount : String)
+
 }

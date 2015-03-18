@@ -9,11 +9,19 @@ import play.api.data.Forms._
 import model._
 import play.api.libs.json.{Json, JsError}
 
-import model.jsonWrites._
+//import model.jsonWrites._
 object Portal extends Controller {
 
 
   def index() =  Action {
+    DataCollection_DBManager.insertWebSeller(DataCollectionModel.WebSeller("www.amazon.com","amazon.png","Amazon Inc."))
+    DataCollection_DBManager.insertWebSellerProduct(DataCollectionModel.Product(Map("UPC" -> "2555"),"Iphone", "phones" ))
+    DataCollection_DBManager.insertWebSellerDesc(DataCollectionModel.Desc(Map("UPC" -> "2555"),"www.amazon.com", "Really Shiny"))
+    DataCollection_DBManager.insertCustomerReview(DataCollectionModel.CustomerReview(Map("UPC" -> "2555"),"apple sucks","it does", "www.amazon.com"))
+    DataCollection_DBManager.insertExpertReview(DataCollectionModel.ExpertReview(Map("UPC" -> "2555"),"www.lol.com/iphoneReview","Apple will fail","the lol page"))
+    DataCollection_DBManager.insertWebPosting(DataCollectionModel.WebPosting(Map("UPC" -> "2555"),"5000","www.amazon.com","www.amazon.com/ihpones/asdasd"))
+    DataCollection_DBManager.insertWebSellerImage(DataCollectionModel.ProductImage(Map("UPC" -> "2555"),"iphone.png","www.amazon.com"))
+
     Ok(views.html.DBTest("test"))
 /*
     request =>

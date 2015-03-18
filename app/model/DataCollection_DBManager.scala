@@ -21,43 +21,47 @@ object DataCollection_DBManager {
   }
 
 
-  def insertWebSellerProduct(): Unit =
+  def insertWebPosting(posting : DataCollectionModel.WebPosting): Unit =
   {
-    mySqlAssistant.insertWebSellerProduct(productCodes, name, desc, img, category, price.toString,listingURL , sellerName ,logo, URL)
+    mySqlAssistant.insertWebPosting(posting)
   }
 
 
-  def insertWebSellerImage(img : ProductImage): Unit =
+  def insertWebSellerImage(img : DataCollectionModel.ProductImage): Unit =
   {
     mySqlAssistant.insertWebSellerImage(img)
   }
 
-  def insertWebSellerDesc(codes : Map[String, String], URL: String, desc : String): Unit =
+  def insertWebSellerDesc(desc : DataCollectionModel.Desc): Unit =
   {
-    //insertWebSellerProduct(co)
+    mySqlAssistant.inserWebSellerDesc(desc)
   }
 
-  def insertWebSellerProductInfo(codes : Map[String, String], URL: String, info : ProductInfo): Unit =
+  def insertWebSellerProduct(product : DataCollectionModel.Product): Unit =
   {
-
+    mySqlAssistant.insertProduct(product)
   }
 
-  def insertWebSellerPosting(codes : Map[String, String], URL: String,posting : WebPosting): Unit =
+  def insertCustomerReview(review : DataCollectionModel.CustomerReview) =
   {
+
+    mySqlAssistant.insertCustomerReview(review)
 
   }
-
-  def insertCustomerReview(reviewText: String, reviewSource: String, productCodes: Map[String, String]) =
+  def insertExpertReview(review : DataCollectionModel.ExpertReview)
   {
-
-    mySqlAssistant.insertCustomerReview(reviewText, reviewSource, productCodes)
-
-  }
-  def insertExpertReview(websiteName: String, URL: String, productCodes: Map[String, String], title: String)
-  {
-    mySqlAssistant.insertExpertReview(websiteName, URL, productCodes, title)
+    mySqlAssistant.insertExpertReview(review)
 
   }
 
+  def insertWebSeller(seller : DataCollectionModel.WebSeller)
+  {
+    mySqlAssistant.insertWebSeller(seller)
+  }
 
+
+  def insertOffer(offer : DataCollectionModel.offer)
+  {
+    mySqlAssistant.insertOffer(offer)
+  }
 }

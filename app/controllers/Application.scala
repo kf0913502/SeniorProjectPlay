@@ -1,12 +1,13 @@
 package controllers
 
+import model._
 import play.api._
 import play.api.mvc._
 
 object Application extends Controller {
 
   def index = Action {
-    Ok(views.html.login(""))
+        Ok(views.html.login(""))
   }
 
 

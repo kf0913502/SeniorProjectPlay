@@ -65,26 +65,26 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   /**********************************DATA INSERTION***********************************/
 
-  def insertCustomerReview(reviewText: String, reviewSource: String, productCodes: Map[String, String])
+  def insertCustomerReview(review : DataCollectionModel.CustomerReview)
   {
-    val id = productExists(productCodes)
+    val id = productExists(review.codes)
 
     if (id == "") return
     val fields = List("review-text", "source", "product-codes")
-    val values = List(reviewText, reviewSource, id)
+    val values = List(review.text, review.websiteName, id)
     val TN = "customer-review"
     insertQuery(TN, fields, values)
 
   }
 
 
-  def insertExpertReview(websiteName: String, URL: String, productCodes: Map[String, String], title: String)
+  def insertExpertReview(review : DataCollectionModel.ExpertReview)
   {
-    val id = productExists(productCodes)
+    val id = productExists(review.codes)
 
     if (id == "") return
     val fields = List("url", "title", "website-name", "product-codes")
-    val values = List(URL, title, websiteName, id)
+    val values = List(review.reviewURL, review.title, review.websiteName, id)
     val TN = "expert-review"
     insertQuery(TN, fields, values)
 
@@ -135,6 +135,17 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   }
 
+  def insertOffer(offer : DataCollectionModel.offer)
+  {
+    val sellerID = lookup("web-based-seller", "id", "url", offer.sellerURL)(0)
+    val fields = List("price", "description", "startDate", "endDate", "seller_id", "view-count")
+    val values = List(offer.price,offer.desc,offer.startDate,offer.endDate,sellerID,offer.viewCount)
+
+    val offerID = insertQuery("offer", fields, values,true)
+
+    offer.codes.foreach(x => insertQuery("offer_products",List("offer_id", "product-codes"), List(offerID, productExists(x))))
+  }
+
   def insertProduct(product : DataCollectionModel.Product)
   {
     val categories = lookup("product-category", "id", "name", product.categoryName)
@@ -176,11 +187,11 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     fields.filter(x => rs.getString(x) != "").map(x => (x, rs.getString(x))).toMap
   }
 
-  def searchProducts(name : String): List[Product] =
+  def searchProducts(name : String): List[APPModel.Product] =
   {
     val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
     val rs = stmt.executeQuery("Select name, " + fields.mkString(",") + " from product,`product-codes` where name like '" + name + "%' and codes = id")
-    var results = List[Product]()
+    var results = List[APPModel.Product]()
 
     while(rs.next()) {
       val value: String = rs.getString("name")

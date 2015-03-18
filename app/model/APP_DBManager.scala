@@ -8,7 +8,7 @@ package model
 
 
 
-object DBManager {
+object APP_DBManager {
 
   import play.api.Play.current
   import APPModel._
@@ -32,12 +32,12 @@ object DBManager {
 
 
 
-  def searchProducts(name : String): List[Product]  =
+  def searchProducts(name : String): List[APPModel.Product]  =
   {
     mySqlAssistant.searchProducts(name)
   }
 
-  def retrieveProduct(codes :  Map[String, String]): Product =
+  def retrieveProduct(codes :  Map[String, String]): APPModel.Product =
   {
     mySqlAssistant.retrieveProduct(codes)
   }

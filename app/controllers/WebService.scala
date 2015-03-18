@@ -8,7 +8,6 @@ import play.api.data._
 import play.api.data.Forms._
 import model._
 import play.api.libs.json.{Json, JsError}
-import model.jsonWrites._
 /**
  * Created by kkk on 3/8/2015.
  */
@@ -16,13 +15,13 @@ object WebService extends Controller{
 
   def searchProduct(name : String) = Action{
 
-    Ok(Json.toJson(DataCollection_DBManager.searchProducts("iph")))
+    Ok(Json.toJson(APP_DBManager.searchProducts("iph")))
   }
 
 
   def getProduct(code : String, codeType : String) = Action{
 
-    Ok(Json.toJson(DataCollection_DBManager.retrieveProduct(Map(codeType -> code))))
+    Ok(Json.toJson(APP_DBManager.retrieveProduct(Map(codeType -> code))))
   }
 
 

@@ -15,7 +15,7 @@ object WebService extends Controller{
 
   def searchProduct(name : String) = Action{
 
-    Ok(Json.toJson(APP_DBManager.searchProducts(name)))
+    Ok(Json.toJson(APP_DBManager.searchProducts(name)) )
   }
 
 
@@ -28,11 +28,75 @@ object WebService extends Controller{
   def insertProduct() =
     Action {
       response =>
-        val k = Json.parse(response.body.asText.getOrElse("none"))
-        val kk = k.validate[DataCollectionModel.WebSeller]
+        val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.Product]
 
-      Ok(views.html.DBTest(kk.get.toString))
+      Ok({DataCollection_DBManager.insertWebSellerProduct(modelJsonObject.get); "ok"})
     }
+
+  def insertWebPosting() =
+    Action {
+      response =>
+        val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.WebPosting]
+
+        Ok({DataCollection_DBManager.insertWebPosting(modelJsonObject.get); "OK"})
+    }
+
+  def insertWebImage() =
+    Action {
+      response =>
+        val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.ProductImage]
+
+        Ok({DataCollection_DBManager.insertWebSellerImage(modelJsonObject.get); "OK"})
+    }
+
+  def insertWebDesc() =
+    Action {
+      response =>
+        val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.Desc]
+
+        Ok({DataCollection_DBManager.insertWebSellerDesc(modelJsonObject.get); "OK"})
+    }
+
+  def insertWebSeller() =
+    Action {
+      response =>
+        val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.WebSeller]
+
+        Ok({DataCollection_DBManager.insertWebSeller(modelJsonObject.get); "OK"})
+    }
+
+  def insertWebOffer() =
+    Action {
+      response =>
+        val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.Offer]
+
+        Ok({DataCollection_DBManager.insertOffer(modelJsonObject.get); "OK"})
+    }
+
+  def insertCustomerReview() =
+    Action {
+      response =>
+        val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.CustomerReview]
+
+        Ok({DataCollection_DBManager.insertCustomerReview(modelJsonObject.get); "OK"})
+    }
+
+  def insertExpertReview() =
+    Action {
+      response =>
+        val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.ExpertReview]
+
+        Ok({DataCollection_DBManager.insertExpertReview(modelJsonObject.get); "OK"})
+    }
+
   }
 
 

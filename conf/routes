@@ -3,10 +3,18 @@
 # ~~~~
 
 # Home page
-GET        /                     controllers.Portal.index
-GET        /searchProduct        controllers.WebService.searchProduct(name: String ?="")
-GET         /getProduct          controllers.WebService.getProduct(code: String, codeType : String)
+GET         /                          controllers.Portal.index
+GET         /searchProduct             controllers.WebService.searchProduct(name: String ?="")
+GET         /getProduct                controllers.WebService.getProduct(code: String, codeType : String)
 #GET     /loginSubmit                contollers.Portal.loginSubmit()
 # Map static resources from the /public folder to the /assets URL path
-GET        /assets/*file         controllers.Assets.at(path="/public", file)
-POST        /insertProduct      controllers.WebService.insertProduct()
+GET         /assets/*file              controllers.Assets.at(path="/public", file)
+POST        /insertProduct             controllers.WebService.insertProduct()
+POST        /insertWebOffer            controllers.WebService.insertWebOffer()
+POST        /insertWebPosting          controllers.WebService.insertWebPosting()
+POST        /insertCustomerReview      controllers.WebService.insertCustomerReview()
+POST        /insertExpertReview        controllers.WebService.insertExpertReview()
+POST        /insertWebImage            controllers.WebService.insertWebImage()
+POST        /insertWebDesc             controllers.WebService.insertWebDesc()
+POST        /insertWebSeller           controllers.WebService.insertWebSeller()
+

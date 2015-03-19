@@ -15,7 +15,7 @@ package object DataCollectionModel {
 
   case class ExpertReview(codes: Map[String, String], reviewURL: String, title: String, websiteName: String)
 
-  case class CustomerReview(codes: Map[String, String], title: String, text: String, websiteName: String)
+  case class CustomerReview(codes: Map[String, String], title: String, var text: String, websiteName: String)
 
   case class ProductImage(codes: Map[String, String], URL: String, sellerURL : String)
 

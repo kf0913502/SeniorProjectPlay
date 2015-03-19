@@ -68,8 +68,9 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   def insertCustomerReview(review : DataCollectionModel.CustomerReview)
   {
+    review.text = review.text.replace("'", "")
     val id = productExists(review.codes)
-
+ 
     if (id == "") return
     val fields = List("review-text", "source", "product-codes")
     val values = List(review.text, review.websiteName, id)

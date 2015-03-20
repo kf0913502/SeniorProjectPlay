@@ -60,7 +60,7 @@ object DataCollection_DBManager {
   }
 
 
-  def insertOffer(offer : DataCollectionModel.offer)
+  def insertOffer(offer : DataCollectionModel.Offer)
   {
     mySqlAssistant.insertOffer(offer)
   }

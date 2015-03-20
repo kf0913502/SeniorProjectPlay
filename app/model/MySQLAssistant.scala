@@ -135,10 +135,10 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   }
 
-  def insertOffer(offer : DataCollectionModel.offer)
+  def insertOffer(offer : DataCollectionModel.Offer)
   {
     val sellerID = lookup("web-based-seller", "id", "url", offer.sellerURL)(0)
-    val fields = List("price", "description", "startDate", "endDate", "seller_id", "view-count")
+    val fields = List("price", "description", "start_date", "end_date", "seller_id", "view-count")
     val values = List(offer.price,offer.desc,offer.startDate,offer.endDate,sellerID,offer.viewCount)
 
     val offerID = insertQuery("offer", fields, values,true)

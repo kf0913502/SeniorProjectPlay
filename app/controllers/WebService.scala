@@ -15,7 +15,7 @@ object WebService extends Controller{
 
   def searchProduct(name : String) = Action{
 
-    Ok(Json.toJson(APP_DBManager.searchProducts("iph")))
+    Ok(Json.toJson(APP_DBManager.searchProducts(name)))
   }
 
 
@@ -25,5 +25,15 @@ object WebService extends Controller{
   }
 
 
+  def insertProduct() =
+    Action {
+      response =>
+        val k = Json.parse(response.body.asText.getOrElse("none"))
+        val kk = k.validate[DataCollectionModel.WebSeller]
 
-}
+      Ok(views.html.DBTest(kk.get.toString))
+    }
+  }
+
+
+

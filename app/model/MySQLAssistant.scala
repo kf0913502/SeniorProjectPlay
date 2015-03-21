@@ -196,7 +196,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   {
     val stmt = db.createStatement
     val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
-    val rs = stmt.executeQuery("Select name, " + fields.mkString(",") + " from product,`product-codes` where name like '" + name + "%' and codes = id")
+    val rs = stmt.executeQuery("Select name, " + fields.mkString(",") + " from product,`product-codes` where name like '%" + name + "%' and codes = id")
     var results = List[APPModel.Product]()
 
     while(rs.next()) {

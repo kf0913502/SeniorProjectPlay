@@ -10,7 +10,7 @@ import java.sql.Statement
 case class MySQLAssistant(app : Application) extends DBAssistant{
 
   val db = DB.getConnection()(app)
-  val stmt = db.createStatement
+
 
   /*********************************** GENERAL UTILITY**************************************/
 
@@ -25,6 +25,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   def lookup(TN : String, colA : String, colB : String, valB: String) : List[String] =
   {
+    val stmt = db.createStatement
     val rs = stmt.executeQuery("Select `" + colA + "` from `" + TN + "` where `" + colB + "` = '" + valB + "'")
 
     var results : List[String] = List()
@@ -36,7 +37,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   def insertQuery(TN : String, fields: List[String], values: List[String], returnGeneratedKey : Boolean = false )
    = {
-
+    val stmt = db.createStatement
     stmt.executeUpdate(createInsertQuery(TN, fields, values), Statement.RETURN_GENERATED_KEYS)
     if (returnGeneratedKey){
       val rs = stmt.getGeneratedKeys()
@@ -49,6 +50,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   def productExists(productCodes: Map[String, String]) : String =
   {
+    val stmt = db.createStatement
     val query = productCodes.map{case (key,value) => key + " = '" + value + "'"}.mkString(" or ")
     val rs = stmt.executeQuery("select id from `product-codes` where " + query)
 
@@ -182,6 +184,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   def retrieveProductcodes(codesID : String) : Map[String, String] =
   {
+    val stmt = db.createStatement
     val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
     val rs = stmt.executeQuery("Select "+ fields.mkString(",") +" from `product-codes` where id ='" + codesID + "'")
     rs.next()
@@ -191,6 +194,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   def searchProducts(name : String): List[APPModel.Product] =
   {
+    val stmt = db.createStatement
     val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
     val rs = stmt.executeQuery("Select name, " + fields.mkString(",") + " from product,`product-codes` where name like '" + name + "%' and codes = id")
     var results = List[APPModel.Product]()
@@ -208,6 +212,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   def retrieveProduct(codes :  Map[String, String]): APPModel.Product =
   {
+    val stmt = db.createStatement
     val id = productExists(codes)
 
     var rs = stmt.executeQuery("Select product.name,date_added, c.name from product,`product-category` c where product.codes = '" + id + "' and `category-id` = id")

@@ -51,7 +51,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   def productExists(productCodes: Map[String, String]) : String =
   {
     val stmt = db.createStatement
-    val query = productCodes.map{case (key,value) => key + " = '" + value + "'"}.mkString(" or ")
+    val query = productCodes.map{case (key,value) => key + " like '%" + value + "%'"}.mkString(" or ")
     val rs = stmt.executeQuery("select id from `product-codes` where " + query)
 
     if (rs.next())
@@ -164,6 +164,21 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     {
       codesID = insertQuery("product-codes", product.codes.keySet.toList, product.codes.values.toList, true)
       insertQuery("product", List("codes", "name", "category-id"), List(codesID, product.name, categoryID))
+    }
+    else
+    {
+      val stmt = db.createStatement
+      val fields = List("UPC","EAN","NPN","ISBN","ASIN")
+      val rs = stmt.executeQuery("select UPC,EAN,NPN,ISBN,ASIN from `product-codes` where id = '" + codesID + "'")
+      rs.next()
+
+      val query = productCodes.map{case (key,value) => key + " like '%" + value + "%'"}.mkString(" or ")
+
+
+      if (rs.next())
+        rs.getString("id")
+      else
+        ""
     }
 
   }

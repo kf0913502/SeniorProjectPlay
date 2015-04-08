@@ -101,8 +101,27 @@ object WebService extends Controller{
   def test() =
   Action{
     response =>
+      DataCollection_DBManager.insertWebSellerProduct(DataCollectionModel.Product(Map("UPC" -> "2567", "NPN" -> "2554"),"Iphone", "phones" ))
       Ok("")
   }
+
+
+  def insertRelated() =
+    Action {
+      response =>
+        val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.Related]
+        Ok({DataCollection_DBManager.insertRelated(modelJsonObject.get);"OK"})
+    }
+
+
+  def insertQuestion() =
+    Action {
+      response =>
+        val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.Question]
+        Ok({DataCollection_DBManager.insertQuestion(modelJsonObject.get);"OK"})
+    }
 
 
   }

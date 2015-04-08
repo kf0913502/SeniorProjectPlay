@@ -8,10 +8,11 @@ import play.api.libs.json.Json
 package object APPModel {
 
 
-  case class Product(info: ProductInfo, images: List[String], descriptions: List[String],
-                     webPosting: List[WebPosting], localPosting: List[LocalPosting], customerReviews: List[CustomerReview], expertReviews: List[ExpertReview])
+  case class Product(info: ProductInfo,  descriptions: List[String],
+                     webPosting: List[WebPosting], localPosting: List[LocalPosting], customerReviews: List[CustomerReview], expertReviews: List[ExpertReview],
+                      offers : List[WebOffer])
 
-  case class ProductInfo(codes: Map[String, String], name: String, category: Category, dateAdded: String = "")
+  case class ProductInfo(codes: Map[String, String], name: String, category: Category, dateAdded: String = "", images: List[String])
 
   case class WebPosting(price: Double, seller: WebBasedSeller, URL: String)
 
@@ -30,6 +31,11 @@ package object APPModel {
 
   case class Category(id: String, parentId: String, name: String)
 
+  case class WebOffer(products : List[ProductInfo], desc : String,  price : String, webBasedSeller: WebBasedSeller)
+
+  case class PriceReduction(product : ProductInfo , newPrice : String, oldPrice : String)
+
+
   implicit val categoryFormat = Json.writes[Category]
   implicit val productInfoFormat = Json.writes[ProductInfo]
   implicit val webSellerFormat = Json.writes[WebBasedSeller]
@@ -38,7 +44,8 @@ package object APPModel {
   implicit val locationFormat = Json.writes[Location]
   implicit val localPostingFormat = Json.writes[LocalPosting]
   implicit val webPostingFormat = Json.writes[WebPosting]
-  implicit val barFormat = Json.writes[Product]
+  implicit val webOfferFormat = Json.writes[WebOffer]
+  implicit val productFormat = Json.writes[Product]
 
   implicit val RcategoryFormat = Json.reads[Category]
   implicit val RproductInfoFormat = Json.reads[ProductInfo]
@@ -48,8 +55,8 @@ package object APPModel {
   implicit val RlocationFormat = Json.reads[Location]
   implicit val RlocalPostingFormat = Json.reads[LocalPosting]
   implicit val RwebPostingFormat = Json.reads[WebPosting]
-  implicit val RbarFormat = Json.reads[Product]
-
+  implicit val RwebOfferFormat = Json.reads[WebOffer]
+  implicit val RproductFormat = Json.reads[Product]
 
 
 }

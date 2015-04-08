@@ -64,4 +64,16 @@ object DataCollection_DBManager {
   {
     mySqlAssistant.insertOffer(offer)
   }
+
+  def insertRelated(related : DataCollectionModel.Related): Unit =
+  {
+    mySqlAssistant.insertRelated(related)
+  }
+
+  def insertQuestion(question : DataCollectionModel.Question): Unit =
+  {
+    mySqlAssistant.insertQuestion(question)
+  }
+
+
 }

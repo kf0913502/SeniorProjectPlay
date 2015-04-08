@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50542
 File Encoding         : 65001
 
-Date: 2015-03-14 01:52:24
+Date: 2015-04-08 23:52:40
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -26,11 +26,7 @@ CREATE TABLE `answer` (
   PRIMARY KEY (`id`),
   KEY `question-id` (`question-id`),
   CONSTRAINT `ANSWER-QUESTION-ID` FOREIGN KEY (`question-id`) REFERENCES `question` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of answer
--- ----------------------------
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for customer-review
@@ -38,20 +34,15 @@ CREATE TABLE `answer` (
 DROP TABLE IF EXISTS `customer-review`;
 CREATE TABLE `customer-review` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `review-text` varchar(255) DEFAULT NULL,
+  `review-text` text,
   `date-added` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `source` varchar(255) DEFAULT NULL,
   `product-codes` int(11) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `product-code_FK` (`product-codes`),
   CONSTRAINT `product-code_FK` FOREIGN KEY (`product-codes`) REFERENCES `product-codes` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of customer-review
--- ----------------------------
-INSERT INTO `customer-review` VALUES ('1', 'Lolinator', '2015-03-13 21:42:18', 'www.lol.com', '2');
-INSERT INTO `customer-review` VALUES ('2', 'Lolinator', '2015-03-13 21:42:38', 'www.lol.com', '2');
+) ENGINE=InnoDB AUTO_INCREMENT=31397 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for desc
@@ -63,15 +54,9 @@ CREATE TABLE `desc` (
   `text` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`seller-id`,`product-codes`),
   KEY `seller-product_product-codes_FK` (`product-codes`),
-  CONSTRAINT `seller-product_seller-id_FK` FOREIGN KEY (`seller-id`) REFERENCES `seller` (`id`),
-  CONSTRAINT `seller-product_product-codes_FK` FOREIGN KEY (`product-codes`) REFERENCES `product-codes` (`id`)
+  CONSTRAINT `seller-product_product-codes_FK` FOREIGN KEY (`product-codes`) REFERENCES `product-codes` (`id`),
+  CONSTRAINT `seller-product_seller-id_FK` FOREIGN KEY (`seller-id`) REFERENCES `seller` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of desc
--- ----------------------------
-INSERT INTO `desc` VALUES ('6', '2', 'Really fucking shiny22');
-INSERT INTO `desc` VALUES ('6', '3', 'Really fucking shiny22');
 
 -- ----------------------------
 -- Table structure for expert-review
@@ -86,15 +71,7 @@ CREATE TABLE `expert-review` (
   PRIMARY KEY (`id`),
   KEY `product_codes_FK` (`product-codes`),
   CONSTRAINT `product_codes_FK` FOREIGN KEY (`product-codes`) REFERENCES `product-codes` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of expert-review
--- ----------------------------
-INSERT INTO `expert-review` VALUES ('3', 'www.lol.com', 'why iphones suck', 'Lolinator', '2');
-INSERT INTO `expert-review` VALUES ('4', 'www.lol.com', 'why iphones suck', 'Lolinator', '2');
-INSERT INTO `expert-review` VALUES ('5', 'www.lol.com', 'why iphones suck', 'Lolinator', '2');
-INSERT INTO `expert-review` VALUES ('6', 'www.lol.com', 'why iphones suck', 'Lolinator', '2');
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for get-notifed
@@ -107,13 +84,9 @@ CREATE TABLE `get-notifed` (
   `lat` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`product-codes`,`username`),
   KEY `usr-name_FK` (`username`),
-  CONSTRAINT `usr-name_FK` FOREIGN KEY (`username`) REFERENCES `user-account` (`username`),
-  CONSTRAINT `product-codess_FK` FOREIGN KEY (`product-codes`) REFERENCES `product-codes` (`id`)
+  CONSTRAINT `product-codess_FK` FOREIGN KEY (`product-codes`) REFERENCES `product-codes` (`id`),
+  CONSTRAINT `usr-name_FK` FOREIGN KEY (`username`) REFERENCES `user-account` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of get-notifed
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for images
@@ -129,15 +102,6 @@ CREATE TABLE `images` (
   CONSTRAINT `images_product-codes_FK` FOREIGN KEY (`product-codes-id`) REFERENCES `product-codes` (`id`),
   CONSTRAINT `sellerID_FK` FOREIGN KEY (`seller-id`) REFERENCES `seller` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of images
--- ----------------------------
-INSERT INTO `images` VALUES ('iphone.jpg', '6', '2');
-INSERT INTO `images` VALUES ('iphone2.jpg', '6', '2');
-INSERT INTO `images` VALUES ('iphone22.jpg', '6', '2');
-INSERT INTO `images` VALUES ('iphone222.jpg', '6', '2');
-INSERT INTO `images` VALUES ('iphone2232.jpg', '6', '3');
 
 -- ----------------------------
 -- Table structure for independent-seller
@@ -158,10 +122,6 @@ CREATE TABLE `independent-seller` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Records of independent-seller
--- ----------------------------
-
--- ----------------------------
 -- Table structure for local-seller
 -- ----------------------------
 DROP TABLE IF EXISTS `local-seller`;
@@ -176,11 +136,7 @@ CREATE TABLE `local-seller` (
   `open_hours` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`,`username`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of local-seller
--- ----------------------------
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for offer
@@ -198,11 +154,7 @@ CREATE TABLE `offer` (
   PRIMARY KEY (`id`),
   KEY `seller_id` (`seller_id`),
   CONSTRAINT `seller id` FOREIGN KEY (`seller_id`) REFERENCES `seller` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of offer
--- ----------------------------
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for offer_products
@@ -213,13 +165,9 @@ CREATE TABLE `offer_products` (
   `product-codes` int(11) NOT NULL,
   PRIMARY KEY (`offer_id`,`product-codes`),
   KEY `upc` (`product-codes`),
-  CONSTRAINT `offers_product-codes_FK` FOREIGN KEY (`product-codes`) REFERENCES `product-codes` (`id`),
-  CONSTRAINT `offer id` FOREIGN KEY (`offer_id`) REFERENCES `offer` (`id`)
+  CONSTRAINT `offer id` FOREIGN KEY (`offer_id`) REFERENCES `offer` (`id`),
+  CONSTRAINT `offers_product-codes_FK` FOREIGN KEY (`product-codes`) REFERENCES `product-codes` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of offer_products
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for product
@@ -238,12 +186,6 @@ CREATE TABLE `product` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Records of product
--- ----------------------------
-INSERT INTO `product` VALUES ('2', 'iphone', '2015-03-13 21:22:31', '29');
-INSERT INTO `product` VALUES ('3', 'iphone', '2015-03-13 22:18:35', '29');
-
--- ----------------------------
 -- Table structure for product-category
 -- ----------------------------
 DROP TABLE IF EXISTS `product-category`;
@@ -255,12 +197,7 @@ CREATE TABLE `product-category` (
   UNIQUE KEY `name` (`name`),
   KEY `parent_id` (`parent_id`),
   CONSTRAINT `parent-categoy` FOREIGN KEY (`parent_id`) REFERENCES `product-category` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of product-category
--- ----------------------------
-INSERT INTO `product-category` VALUES ('29', null, 'phones');
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for product-codes
@@ -279,13 +216,7 @@ CREATE TABLE `product-codes` (
   UNIQUE KEY `NPN` (`NPN`),
   UNIQUE KEY `ISBN` (`ISBN`),
   UNIQUE KEY `ASIN` (`ASIN`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of product-codes
--- ----------------------------
-INSERT INTO `product-codes` VALUES ('2', '2555', null, null, null, null);
-INSERT INTO `product-codes` VALUES ('3', '25555', null, null, null, null);
+) ENGINE=InnoDB AUTO_INCREMENT=77 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for question
@@ -301,11 +232,20 @@ CREATE TABLE `question` (
   KEY `upc` (`product-codes`),
   KEY `id` (`id`),
   CONSTRAINT `question_product-codes_FK` FOREIGN KEY (`product-codes`) REFERENCES `product-codes` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Records of question
+-- Table structure for related
 -- ----------------------------
+DROP TABLE IF EXISTS `related`;
+CREATE TABLE `related` (
+  `PID1` int(11) NOT NULL,
+  `PID2` int(11) NOT NULL,
+  KEY `related_PID1_FK1` (`PID1`),
+  KEY `related_PID2_FK1` (`PID2`),
+  CONSTRAINT `related_PID1_FK1` FOREIGN KEY (`PID1`) REFERENCES `product` (`codes`),
+  CONSTRAINT `related_PID2_FK1` FOREIGN KEY (`PID2`) REFERENCES `product` (`codes`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for seller
@@ -315,12 +255,7 @@ CREATE TABLE `seller` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of seller
--- ----------------------------
-INSERT INTO `seller` VALUES ('6', 'Amazon');
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for seller-product
@@ -344,14 +279,7 @@ CREATE TABLE `seller-product` (
   KEY `seller_id_4` (`seller_id`),
   CONSTRAINT `sellerProduct_product-codes_FK` FOREIGN KEY (`product-codes`) REFERENCES `product-codes` (`id`),
   CONSTRAINT `seller_product_sellerid` FOREIGN KEY (`seller_id`) REFERENCES `seller` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of seller-product
--- ----------------------------
-INSERT INTO `seller-product` VALUES ('50000', '2015-03-13 21:22:31', '2', '6', '3', 'www.amazon.com/iphoneLOL');
-INSERT INTO `seller-product` VALUES ('50000', '2015-03-13 21:25:48', '2', '6', '4', 'www.amazon.com/iphoneLOL');
-INSERT INTO `seller-product` VALUES ('50000', '2015-03-13 22:19:09', '3', '6', '5', 'www.amazon.com/iphoneLOL');
+) ENGINE=InnoDB AUTO_INCREMENT=5289 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for user-account
@@ -368,11 +296,6 @@ CREATE TABLE `user-account` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Records of user-account
--- ----------------------------
-INSERT INTO `user-account` VALUES ('kariem', 'password', 'kariem', 'fahmi', 'moml31@hotmail.com', '0');
-
--- ----------------------------
 -- Table structure for web-based-seller
 -- ----------------------------
 DROP TABLE IF EXISTS `web-based-seller`;
@@ -382,9 +305,4 @@ CREATE TABLE `web-based-seller` (
   `url` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `ID_FK` FOREIGN KEY (`id`) REFERENCES `seller` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
-
--- ----------------------------
--- Records of web-based-seller
--- ----------------------------
-INSERT INTO `web-based-seller` VALUES ('6', 'amazon.png', 'www.Amazon.com');
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;

@@ -51,7 +51,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   def productExists(productCodes: Map[String, String]) : String =
   {
     val stmt = db.createStatement
-    val query = productCodes.map{case (key,value) => key + " like '%" + value + "%'"}.mkString(" or ")
+    val query = productCodes.map{case (key,value) => value.split(",").map(X => key + " like '%" + X + "%'")}.flatten.mkString(" or ")
     val rs = stmt.executeQuery("select id from `product-codes` where " + query)
 
     if (rs.next())
@@ -74,8 +74,8 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val id = productExists(review.codes)
  
     if (id == "") return
-    val fields = List("review-text", "source", "product-codes")
-    val values = List(review.text, review.websiteName, id)
+    val fields = List("review-text", "source", "product-codes", "title")
+    val values = List(review.text, review.websiteName, id, review.title)
     val TN = "customer-review"
     insertQuery(TN, fields, values)
 
@@ -171,19 +171,41 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       val fields = List("UPC","EAN","NPN","ISBN","ASIN")
       val rs = stmt.executeQuery("select UPC,EAN,NPN,ISBN,ASIN from `product-codes` where id = '" + codesID + "'")
       rs.next()
+      val X = Option(rs.getString("EAN")).getOrElse("")
+      //
+      //
+
+
       val codes =
-        fields.map(X => X -> (rs.getString(X).split(",") ++ product.codes.get(X).getOrElse("").split(",")).distinct.mkString(",")).toMap
-      stmt.executeQuery("update `product-codes` set " + codes.map{case(k,v) => k + "='" + v + "'"}.mkString(",") + " where id = '" + codesID + "'")
+        fields.map(X => (X ,{
+
+            val concatCodes =  Option(rs.getString(X)).getOrElse("").split(",") ++ product.codes.get(X).getOrElse("").split(",")
+            concatCodes.distinct.filter(_ != "").mkString(",")
+
+        })).toMap
+      stmt.executeUpdate("update `product-codes` set " + codes.map{case(k,v) => k + "='" + v + "'"}.mkString(",") + " where id = '" + codesID + "'")
 
 
     }
 
+  }
+
+
+  def insertRelated(related : DataCollectionModel.Related)
+  {
+    insertQuery("related", List("PID1", "PID2"), List(productExists(related.C1), productExists(related.C2)))
   }
   def insertSeller(name: String) : String =
   {
     insertQuery("seller", List("name"), List(name), true)
   }
 
+  def insertQuestion(question : DataCollectionModel.Question): Unit =
+  {
+    val codesID = productExists(question.productCodes)
+    val questionID = insertQuery("question", List("question-text", "product-codes"), List(question.question, codesID), true)
+    question.answers.foreach(A => insertQuery("answer", List("answer-text", "question-id"), List(A,questionID)))
+  }
 
 
 
@@ -215,7 +237,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       val value: String = rs.getString("name")
       val key = fields.filter(x => rs.getString(x) != "").map(x => (x, rs.getString(x))).toMap
 
-      results = results :+ APPModel.Product(APPModel.ProductInfo(key, value,APPModel.Category("", "", "")), List(""), List(""),List(),List() ,List(),List())
+      results = results :+ APPModel.Product(APPModel.ProductInfo(key, value, APPModel.Category("", "", ""),"", List("")),  List(""),List(),List() ,List(),List(), List())
     }
 
     results
@@ -256,7 +278,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     while(rs.next())
       expertReviews = expertReviews :+ APPModel.ExpertReview(rs.getString("url"),rs.getString("title"),rs.getString("website-name"))
 
-    APPModel.Product(APPModel.ProductInfo(codes,name,APPModel.Category("","",category), date),images,desc,postings,List(),customerReviews,expertReviews)
+    APPModel.Product(APPModel.ProductInfo(codes,name,APPModel.Category("","",category), date, images),desc,postings,List(),customerReviews,expertReviews, List())
 
   }
 

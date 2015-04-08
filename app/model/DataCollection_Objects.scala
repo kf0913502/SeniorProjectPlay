@@ -23,7 +23,10 @@ package object DataCollectionModel {
 
   case class Offer(codes : List[Map[String, String]], sellerURL : String, price : String, desc : String, startDate : String, endDate : String, viewCount : String)
 
+  case class PriceReduction(codes : Map[String, String], sellerURL : String, newPrice : String, oldPrice : String)
 
+  case class Question(question : String, answers : List[String], productCodes : Map[String, String])
+  case class Related(C1 : Map[String, String], C2 : Map[String, String])
   implicit val ProductRead = Json.reads[Product]
   implicit val DescRead = Json.reads[Desc]
   implicit val WebPostingRead = Json.reads[WebPosting]
@@ -32,4 +35,6 @@ package object DataCollectionModel {
   implicit val ProductImageRead = Json.reads[ProductImage]
   implicit val WebSellerRead = Json.reads[WebSeller]
   implicit val OfferRead = Json.reads[Offer]
+  implicit val relatedRead = Json.reads[Related]
+  implicit val questionRead = Json.reads[Question]
 }

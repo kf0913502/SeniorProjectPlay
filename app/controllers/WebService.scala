@@ -98,6 +98,11 @@ object WebService extends Controller{
     }
 
 
+  def test() =
+  Action{
+    response =>
+      Ok("")
+  }
 
 
   }

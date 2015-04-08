@@ -18,3 +18,4 @@ POST        /insertWebImage            controllers.WebService.insertWebImage()
 POST        /insertWebDesc             controllers.WebService.insertWebDesc()
 POST        /insertWebSeller           controllers.WebService.insertWebSeller()
 
+Get         /test                      constrollers.WebService.test()

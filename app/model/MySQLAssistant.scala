@@ -171,14 +171,11 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       val fields = List("UPC","EAN","NPN","ISBN","ASIN")
       val rs = stmt.executeQuery("select UPC,EAN,NPN,ISBN,ASIN from `product-codes` where id = '" + codesID + "'")
       rs.next()
-      fields.map(X => {rs.getString(X).split(",") ++ product.codes.get(X).getOrElse("").split(",")} )
-      //val query = productCodes.map{case (key,value) => key + " like '%" + value + "%'"}.mkString(" or ")
+      val codes =
+        fields.map(X => X -> (rs.getString(X).split(",") ++ product.codes.get(X).getOrElse("").split(",")).distinct.mkString(",")).toMap
+      stmt.executeQuery("update `product-codes` set " + codes.map{case(k,v) => k + "='" + v + "'"}.mkString(",") + " where id = '" + codesID + "'")
 
 
-      if (rs.next())
-        rs.getString("id")
-      else
-        ""
     }
 
   }

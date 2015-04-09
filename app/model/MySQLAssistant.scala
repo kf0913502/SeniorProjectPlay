@@ -250,7 +250,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       val value: String = rs.getString("name")
       val key = fields.filter(x => rs.getString(x) != "").map(x => (x, rs.getString(x))).toMap
 
-      results = results :+ APPModel.Product(APPModel.ProductInfo(key, value, APPModel.Category("", "", ""),"", List("")),  List(""),List(),List() ,List(),List(), List(), List(), List())
+      results = results :+ APPModel.Product(APPModel.ProductInfo(key, value, APPModel.Category("", "", ""),"", List("")),  List(""),List(),List() ,List(),List(), List(), List(), List(), List())
     }
 
     results

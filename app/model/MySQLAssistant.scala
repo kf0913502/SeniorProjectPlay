@@ -150,17 +150,20 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     offer.codes.foreach(x => insertQuery("offer_products",List("offer_id", "product-codes"), List(offerID, productExists(x))))
   }
 
+
   def insertProduct(product : DataCollectionModel.Product) {
+
+
+    val parentcategorie = lookup("product-category", "id", "name", product.parentCategoryName)
+    var parentCategoryID = ""
+    if (parentcategorie.length == 0)
+      parentCategoryID = insertQuery("product-category", List("name"), List(product.parentCategoryName), true)
+    else parentCategoryID = parentcategorie(0)
 
     val categories = lookup("product-category", "id", "name", product.categoryName)
     var categoryID = ""
-    if (categories.length == 0) {
-
-      val parentcategorie = lookup("product-category", "id", "name", product.parentCategoryName)
-      var parentCategoryID = ""
-      if (parentcategorie.length == 0) parentCategoryID = insertQuery("product-category", List("name"), List(product.parentCategoryName), true)
+    if (categories.length == 0)
       categoryID = insertQuery("product-category", List("name", "parent_id"), List(product.categoryName, parentCategoryID), true)
-    }
     else categoryID = categories(0)
 
 

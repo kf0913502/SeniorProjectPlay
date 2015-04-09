@@ -60,7 +60,7 @@ object DataCollection_DBManager {
   }
 
 
-  def insertOffer(offer : DataCollectionModel.Offer)
+  def insertOffer(offer : DataCollectionModel.WebOffer)
   {
     mySqlAssistant.insertOffer(offer)
   }
@@ -76,4 +76,8 @@ object DataCollection_DBManager {
   }
 
 
+  def insertWebPricereduction(reduction: DataCollectionModel.WebPriceReduction): Unit =
+  {
+    mySqlAssistant.insertWebPricereduction(reduction)
+  }
 }

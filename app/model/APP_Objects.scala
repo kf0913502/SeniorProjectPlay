@@ -31,9 +31,9 @@ package object APPModel {
 
   case class Category(id: String, parentId: String, name: String)
 
-  case class WebOffer(products : List[ProductInfo], desc : String,  price : String, webBasedSeller: WebBasedSeller)
+  case class WebOffer(products : List[ProductInfo], desc : String,  price : String, sellerURL : String)
 
-  case class PriceReduction(product : ProductInfo , newPrice : String, oldPrice : String)
+  case class PriceReduction(product : ProductInfo , newPrice : String, oldPrice : String, )
 
 
   implicit val categoryFormat = Json.writes[Category]

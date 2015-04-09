@@ -208,7 +208,10 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   }
 
 
-
+  def insertWebPricereduction(reduction: DataCollectionModel.WebPriceReduction): Unit =
+  {
+    insertQuery("")
+  }
   /**********************************END DATA INSERTION***********************************/
 
 

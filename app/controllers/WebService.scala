@@ -123,6 +123,13 @@ object WebService extends Controller{
         Ok({DataCollection_DBManager.insertQuestion(modelJsonObject.get);"OK"})
     }
 
+  def insertWebPriceReduction()=
+  Action{
+    response =>
+      val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+      val modelJsonObject = parsedJson.validate[DataCollectionModel.WebPriceReduction]
+      Ok({DataCollection_DBManager.insertWebPriceReduction(modelJsonObject.get);"OK"})
+  }
 
   }
 

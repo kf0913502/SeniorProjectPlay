@@ -318,7 +318,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     }
 
     var reductions : List[APPModel.PriceReduction] = List()
-    rs = stmt.executeQuery("select ")
+    //rs = stmt.executeQuery("select ")
     APPModel.Product(APPModel.ProductInfo(codes,name,APPModel.Category("","",category), date, images),desc,postings,List(),customerReviews,expertReviews, List(), relatedProducts, questions, List())
 
   }

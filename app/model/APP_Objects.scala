@@ -10,7 +10,7 @@ package object APPModel {
 
   case class Product(info: ProductInfo,  descriptions: List[String],
                      webPosting: List[WebPosting], localPosting: List[LocalPosting], customerReviews: List[CustomerReview], expertReviews: List[ExpertReview],
-                      offers : List[WebOffer])
+                      offers : List[WebOffer], related : List[ProductInfo], questions : List[Question])
 
   case class ProductInfo(codes: Map[String, String], name: String, category: Category, dateAdded: String = "", images: List[String])
 
@@ -35,6 +35,8 @@ package object APPModel {
 
   case class PriceReduction(product : ProductInfo , newPrice : String, oldPrice : String)
 
+  case class Question(question : String, answers : List[String])
+
 
   implicit val categoryFormat = Json.writes[Category]
   implicit val productInfoFormat = Json.writes[ProductInfo]
@@ -45,6 +47,7 @@ package object APPModel {
   implicit val localPostingFormat = Json.writes[LocalPosting]
   implicit val webPostingFormat = Json.writes[WebPosting]
   implicit val webOfferFormat = Json.writes[WebOffer]
+  implicit val questionFormat = Json.writes[Question]
   implicit val productFormat = Json.writes[Product]
 
   implicit val RcategoryFormat = Json.reads[Category]
@@ -56,6 +59,7 @@ package object APPModel {
   implicit val RlocalPostingFormat = Json.reads[LocalPosting]
   implicit val RwebPostingFormat = Json.reads[WebPosting]
   implicit val RwebOfferFormat = Json.reads[WebOffer]
+  implicit val RquestionFormat = Json.reads[Question]
   implicit val RproductFormat = Json.reads[Product]
 
 

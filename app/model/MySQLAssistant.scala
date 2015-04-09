@@ -310,16 +310,16 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     )
 
     var questions : List[APPModel.Question] = List()
-
     rs = stmt.executeQuery("select id, `question-text` from question where `product-codes` = '" + id + "'")
-
-
     while(rs.next())
     {
       val answers = lookup("answer", "answer-text", "question-id", rs.getString("id"))
-      questions :+ APPModel.Question(rs.getString("question-text"),answers)
+      questions = questions :+ APPModel.Question(rs.getString("question-text"),answers)
     }
-    APPModel.Product(APPModel.ProductInfo(codes,name,APPModel.Category("","",category), date, images),desc,postings,List(),customerReviews,expertReviews, List(), relatedProducts, questions)
+
+    var reductions : List[APPModel.PriceReduction] = List()
+    rs = stmt.executeQuery("select ")
+    APPModel.Product(APPModel.ProductInfo(codes,name,APPModel.Category("","",category), date, images),desc,postings,List(),customerReviews,expertReviews, List(), relatedProducts, questions, List())
 
   }
 

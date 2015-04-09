@@ -31,7 +31,7 @@ package object APPModel {
 
   case class Category(id: String, parentId: String, name: String)
 
-  case class WebOffer(products : List[ProductInfo], desc : String,  price : String, sellerURL : String)
+  case class WebOffer(products : List[ProductInfo], desc : String,  price : String, seller : WebBasedSeller, startDate : String, endDate : String)
 
   case class PriceReduction(seller : WebBasedSeller, product : ProductInfo , newPrice : String, oldPrice : String)
 

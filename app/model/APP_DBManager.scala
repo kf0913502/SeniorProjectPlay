@@ -42,6 +42,16 @@ object APP_DBManager {
     mySqlAssistant.retrieveProduct(codes)
   }
 
+  def retrieveAllCategories() : List[APPModel.Category] =
+  {
+    mySqlAssistant.retrieveAllCategories()
+  }
+
+  def retrieveOffersInCategory(name : String) : List[APPModel.WebOffer] =
+  {
+    mySqlAssistant.retrieveOffersInCategory(name)
+  }
+
 
 
 

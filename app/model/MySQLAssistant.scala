@@ -26,7 +26,9 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   def lookup(TN : String, colA : String, colB : String, valB: String) : List[String] =
   {
     val stmt = db.createStatement
-    val rs = stmt.executeQuery("Select `" + colA + "` from `" + TN + "` where `" + colB + "` = '" + valB + "'")
+    var query = "Select `" + colA + "` from `" + TN + "` "
+    if (colB != "") query = query + "where `" + colB + "` = '" + valB + "'"
+    val rs = stmt.executeQuery(query)
 
     var results : List[String] = List()
     while(rs.next())
@@ -185,10 +187,8 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       rs.next()
       var codes =
         fields.map(X => (X ,{
-
             val concatCodes =  Option(rs.getString(X)).getOrElse("").split(",") ++ product.codes.get(X).getOrElse("").split(",")
             concatCodes.distinct.filter(_ != "").mkString(",")
-
         })).toMap
 
       codes = codes.filter(_._2 != "")
@@ -257,13 +257,13 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   }
 
 
-  def retrieveProduct(codes :  Map[String, String]): APPModel.Product =
+  def retrieveProductInfo(codes : Map[String, String]) : APPModel.ProductInfo =
   {
+
     val stmt = db.createStatement
     val id = productExists(codes)
 
-    var rs = stmt.executeQuery("Select product.name,date_added, c.name from product,`product-category` c where product.codes = '" + id + "' and `category-id` = id")
-
+    val rs = stmt.executeQuery("Select product.name,date_added, c.name from product,`product-category` c where product.codes = '" + id + "' and c.id = `category-id`")
     rs.next()
 
     val name = rs.getString("product.name")
@@ -271,58 +271,144 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val date = rs.getString("date_added")
 
     val images = lookup("images", "URL", "product-codes-id", id)
-    val desc = lookup("desc","text","product-codes", id)
 
+    APPModel.ProductInfo(codes, name, APPModel.Category("","",category),date,images)
+  }
+
+  def retrieveWebPostings(codesID : String) : List[APPModel.WebPosting] =
+  {
+    val stmt = db.createStatement
     var postings : List[APPModel.WebPosting] = List()
-    rs = stmt.executeQuery("select price, logo, w.URL, s.url from `seller-product` s, `web-based-seller` w where `product-codes` ='" + id +  "'and seller_id = w.id")
+    val rs = stmt.executeQuery("select price, logo, w.URL, s.url from `seller-product` s, `web-based-seller` w where `product-codes` ='" + codesID +  "'and seller_id = w.id")
     while(rs.next())
       postings = postings :+ APPModel.WebPosting(rs.getString("price").toDouble,APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.URL")),rs.getString("s.url"))
-    //TO DO: DO THE SAME FOR LOCAL SELLERS
+    postings
+  }
 
+  def retrieveCustomerReviews(codesID : String) : List[APPModel.CustomerReview] =
+  {
+    val stmt = db.createStatement
     var customerReviews : List[APPModel.CustomerReview] = List()
 
-    rs = stmt.executeQuery("select `review-text`, `date-added`, source from `customer-review` where `product-codes` = '" + id + "'")
+    val rs = stmt.executeQuery("select `review-text`, `date-added`, source from `customer-review` where `product-codes` = '" + codesID + "'")
     while(rs.next())
       customerReviews = customerReviews :+ APPModel.CustomerReview("",rs.getString("review-text"),rs.getString("date-added"),rs.getString("source"))
+    customerReviews
+  }
 
-
+  def retrieveExpertReviews(codesID : String) : List[APPModel.ExpertReview] =
+  {
+    val stmt = db.createStatement
     var expertReviews : List[APPModel.ExpertReview] = List()
-    rs = stmt.executeQuery("select url, title, `website-name` from `expert-review` where `product-codes` = '" + id + "'")
+    val rs = stmt.executeQuery("select url, title, `website-name` from `expert-review` where `product-codes` = '" + codesID + "'")
     while(rs.next())
       expertReviews = expertReviews :+ APPModel.ExpertReview(rs.getString("url"),rs.getString("title"),rs.getString("website-name"))
+    expertReviews
+  }
 
+  def retrieveRelatedProducts(codesID : String) : List[APPModel.ProductInfo] =
+   {
+     val ids = lookup("related", "PID2", "PID1", codesID)
+     var relatedProducts : List[APPModel.ProductInfo] = List()
 
-    var relatedProducts : List[APPModel.ProductInfo] = List()
+     ids.foreach(X => {
+       val codes = retrieveProductcodes(X)
+       val productInfo = retrieveProductInfo(codes)
+       relatedProducts = relatedProducts :+ productInfo
+     })
 
-    val ids = lookup("related", "PID2", "PID1", id)
+    relatedProducts
+   }
 
-    ids.foreach(X =>{
-      val imgs = lookup("images", "URL", "product-codes-id", X)
-      val name = lookup("product", "name", "codes", X)
-      val categoryID = lookup("product", "category-id", "codes", X)
-      val categoryName = lookup("product-category", "name", "id", categoryID(0))
-      val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
-      rs = stmt.executeQuery("select " + fields.mkString(",") +" from `product-codes` where id = '" + X + "'")
-      rs.next()
-      val RCodes = fields.filter(x => rs.getString(x) != "").map(x => (x, rs.getString(x))).toMap
-
-      relatedProducts = relatedProducts :+ APPModel.ProductInfo(RCodes, name(0), APPModel.Category("","",categoryName(0)), "", imgs)}
-    )
-
+  def retrieveQuestions(codesID : String) : List[APPModel.Question] =
+  {
+    val stmt = db.createStatement
     var questions : List[APPModel.Question] = List()
-    rs = stmt.executeQuery("select id, `question-text` from question where `product-codes` = '" + id + "'")
+    val rs = stmt.executeQuery("select id, `question-text` from question where `product-codes` = '" + codesID + "'")
     while(rs.next())
     {
       val answers = lookup("answer", "answer-text", "question-id", rs.getString("id"))
       questions = questions :+ APPModel.Question(rs.getString("question-text"),answers)
     }
+    questions
+  }
 
+  def retrievePriceReductions(codesID : String) : List[APPModel.PriceReduction] =
+  {
+    val stmt = db.createStatement
     var reductions : List[APPModel.PriceReduction] = List()
-    //rs = stmt.executeQuery("select ")
-    APPModel.Product(APPModel.ProductInfo(codes,name,APPModel.Category("","",category), date, images),desc,postings,List(),customerReviews,expertReviews, List(), relatedProducts, questions, List())
+    val rs = stmt.executeQuery("select oldPrice,newPrice, logo, w.url from `price-reduction` p, `web-based-seller` w where `product-codes` ='" + codesID +  "'and sellerID = w.id")
+
+    val productInfo = retrieveProductInfo(retrieveProductcodes(codesID))
+    while(rs.next())
+      reductions = reductions :+ APPModel.PriceReduction(APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.url")),productInfo,rs.getString("newPrice"),rs.getString("oldPrice"))
+    reductions
+  }
+
+  def retrieveOffers(codesID : String) : List[APPModel.WebOffer] =
+  {
+    val stmt = db.createStatement
+    var offers : List[APPModel.WebOffer] = List()
+    val offersID = lookup("offer_products","offer_id","product-codes",codesID)
+
+    offersID.foreach(X =>{
+      val productsID = lookup("offer_products","product-codes","offer_id",X)
+      val query = "select price,description,start_date,end_date, logo,w.url from " +
+        "offer o, `web-based-seller` w where o.id ='" + X + "' and w.id = o.seller_id"
+      val rs = stmt.executeQuery(query)
+      rs.next()
+      val productInfos = productsID.map(X => retrieveProductInfo(retrieveProductcodes(X)))
+
+      offers = offers :+ APPModel.WebOffer(productInfos,rs.getString("description"),rs.getString("price"),
+        APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.url")),rs.getString("start_date"),rs.getString("end_date"))
+    })
+
+    offers
+  }
+  def retrieveProduct(codes :  Map[String, String]): APPModel.Product =
+  {
+    val id = productExists(codes)
+    val productInfo = retrieveProductInfo(codes)
+    val desc = lookup("desc","text","product-codes", id)
+    val postings = retrieveWebPostings(id)
+    val customerReviews = retrieveCustomerReviews(id)
+    val expertReviews = retrieveExpertReviews(id)
+    val relatedProducts = retrieveRelatedProducts(id)
+    val questions = retrieveQuestions(id)
+    val priceReductions = retrievePriceReductions(id)
+    val offers = retrieveOffers(id)
+       //TO DO: DO THE SAME FOR LOCAL SELLERS
+
+
+    APPModel.Product(productInfo,desc,postings,List(),customerReviews,expertReviews, offers, relatedProducts, questions, priceReductions)
 
   }
 
+  def retrieveAllCategories() : List[APPModel.Category] =
+  {
+
+      lookup("product-category","name","","").map(X => APPModel.Category("","",X))
+    //TODO: 1. see how to display images for categories 2. see how to make use of parent category
+  }
+
+  def retrieveOffersInCategory(categoryName : String) : List[APPModel.WebOffer] =
+  {
+    val stmt = db.createStatement
+    val rs = stmt.executeQuery("select logo, w.url, off.id, price, description, start_date, end_date " +
+      "from product pr, offer_products op,`product-category` pc, offer off ,`web-based-seller` w where " +
+      "w.id = off.seller_id and op.offer_id = off.id and `category-id` = pc.id and pr.codes = `product-codes` and pc.name = '" + categoryName + "' ORDER BY off.date_added")
+
+    var offers : List[APPModel.WebOffer] = List()
+    while(rs.next())
+    {
+      val productInfos = lookup("offer_products","product-codes", "offer_id",rs.getString("off.id")).map(X => retrieveProductInfo(retrieveProductcodes(X)))
+      offers = offers :+ APPModel.WebOffer(productInfos,rs.getString("description"),rs.getString("price"),
+      APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.url")),rs.getString("start_date"),rs.getString("end_date"))
+    }
+
+    offers
+
+  }
 
 
 }

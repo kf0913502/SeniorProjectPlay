@@ -131,6 +131,16 @@ object WebService extends Controller{
       Ok({DataCollection_DBManager.insertWebPriceReduction(modelJsonObject.get);"OK"})
   }
 
+  def getAllCategories()=
+    Action{
+
+      Ok(Json.toJson(APP_DBManager.retrieveAllCategories()) )
+    }
+
+  def getOffersInCategory(name : String)=
+    Action{
+      Ok(Json.toJson(APP_DBManager.retrieveOffersInCategory(name)) )
+    }
   }
 
 

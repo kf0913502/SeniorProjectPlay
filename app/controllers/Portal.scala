@@ -22,7 +22,7 @@ object Portal extends Controller {
     DataCollection_DBManager.insertWebPosting(DataCollectionModel.WebPosting(Map("UPC" -> "2555"),"5000","www.amazon.com","www.amazon.com/ihpones/asdasd"))
     DataCollection_DBManager.insertWebSellerImage(DataCollectionModel.ProductImage(Map("UPC" -> "2555"),"iphone.png","www.amazon.com"))
 */
-    DataCollection_DBManager.insertOffer(DataCollectionModel.Offer(List(Map("UPC" -> "2555")),"www.amazon.com","200","2 for one","2013-03-03","2013-03-03","500"))
+    DataCollection_DBManager.insertOffer(DataCollectionModel.WebOffer(List(Map("UPC" -> "2555")),"www.amazon.com","200","2 for one","2013-03-03","2013-03-03","500"))
     Ok(views.html.DBTest("test"))
 /*
     request =>

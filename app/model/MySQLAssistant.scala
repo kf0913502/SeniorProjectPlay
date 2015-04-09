@@ -139,7 +139,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   }
 
-  def insertOffer(offer : DataCollectionModel.Offer)
+  def insertOffer(offer : DataCollectionModel.WebOffer)
   {
     val sellerID = lookup("web-based-seller", "id", "url", offer.sellerURL)(0)
     val fields = List("price", "description", "start_date", "end_date", "seller_id", "view-count")
@@ -150,13 +150,21 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     offer.codes.foreach(x => insertQuery("offer_products",List("offer_id", "product-codes"), List(offerID, productExists(x))))
   }
 
-  def insertProduct(product : DataCollectionModel.Product)
-  {
+  def insertProduct(product : DataCollectionModel.Product) {
+
     val categories = lookup("product-category", "id", "name", product.categoryName)
     var categoryID = ""
-    if (categories.length == 0)
-      categoryID = insertQuery("product-category", List("name"), List(product.categoryName), true)
+    if (categories.length == 0) {
+
+      val parentcategorie = lookup("product-category", "id", "name", product.parentCategoryName)
+      var parentCategoryID = ""
+      if (parentcategorie.length == 0) parentCategoryID = insertQuery("product-category", List("name"), List(product.parentCategoryName), true)
+      categoryID = insertQuery("product-category", List("name", "parent_id"), List(product.categoryName, parentCategoryID), true)
+    }
     else categoryID = categories(0)
+
+
+
 
     var codesID = productExists(product.codes)
 
@@ -171,11 +179,6 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       val fields = List("UPC","EAN","NPN","ISBN","ASIN")
       val rs = stmt.executeQuery("select UPC,EAN,NPN,ISBN,ASIN from `product-codes` where id = '" + codesID + "'")
       rs.next()
-      val X = Option(rs.getString("EAN")).getOrElse("")
-      //
-      //
-
-
       val codes =
         fields.map(X => (X ,{
 
@@ -208,9 +211,10 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   }
 
 
-  def insertWebPricereduction(reduction: DataCollectionModel.WebPriceReduction): Unit =
+  def insertWebPriceReduction(reduction: DataCollectionModel.WebPriceReduction): Unit =
   {
-    insertQuery("")
+    val values = List(productExists(reduction.codes), lookup("web-based-seller", "id", "url", reduction.sellerURL)(0), reduction.oldPrice, reduction.newPrice )
+    insertQuery("price-reduction", List("product-codes", "sellerID", "oldPrice", "newPrice"), values)
   }
   /**********************************END DATA INSERTION***********************************/
 

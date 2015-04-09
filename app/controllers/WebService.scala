@@ -74,7 +74,7 @@ object WebService extends Controller{
     Action {
       response =>
         val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
-        val modelJsonObject = parsedJson.validate[DataCollectionModel.Offer]
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.WebOffer]
 
         Ok({DataCollection_DBManager.insertOffer(modelJsonObject.get); "OK"})
     }

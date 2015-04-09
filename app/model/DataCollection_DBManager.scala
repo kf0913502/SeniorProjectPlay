@@ -76,8 +76,8 @@ object DataCollection_DBManager {
   }
 
 
-  def insertWebPricereduction(reduction: DataCollectionModel.WebPriceReduction): Unit =
+  def insertWebPriceReduction(reduction: DataCollectionModel.WebPriceReduction): Unit =
   {
-    mySqlAssistant.insertWebPricereduction(reduction)
+    mySqlAssistant.insertWebPriceReduction(reduction)
   }
 }

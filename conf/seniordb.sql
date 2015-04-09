@@ -1,16 +1,16 @@
 /*
 Navicat MySQL Data Transfer
 
-Source Server         : SeniorDB
-Source Server Version : 50542
+Source Server         : localSeniorDB
+Source Server Version : 50621
 Source Host           : localhost:3306
 Source Database       : seniordb
 
 Target Server Type    : MYSQL
-Target Server Version : 50542
+Target Server Version : 50621
 File Encoding         : 65001
 
-Date: 2015-04-08 23:52:40
+Date: 2015-04-09 08:45:02
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -170,6 +170,23 @@ CREATE TABLE `offer_products` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
+-- Table structure for price-reduction
+-- ----------------------------
+DROP TABLE IF EXISTS `price-reduction`;
+CREATE TABLE `price-reduction` (
+  `product-codes` int(11) DEFAULT NULL,
+  `sellerID` int(11) DEFAULT NULL,
+  `oldPrice` decimal(10,2) DEFAULT NULL,
+  `newPrice` decimal(10,2) DEFAULT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`),
+  KEY `priceReduction_productCodes_FK` (`product-codes`),
+  KEY `priceReduction_sellerID_FK` (`sellerID`),
+  CONSTRAINT `priceReduction_productCodes_FK` FOREIGN KEY (`product-codes`) REFERENCES `product-codes` (`id`),
+  CONSTRAINT `priceReduction_sellerID_FK` FOREIGN KEY (`sellerID`) REFERENCES `seller` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+
+-- ----------------------------
 -- Table structure for product
 -- ----------------------------
 DROP TABLE IF EXISTS `product`;
@@ -197,7 +214,7 @@ CREATE TABLE `product-category` (
   UNIQUE KEY `name` (`name`),
   KEY `parent_id` (`parent_id`),
   CONSTRAINT `parent-categoy` FOREIGN KEY (`parent_id`) REFERENCES `product-category` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for product-codes
@@ -216,7 +233,7 @@ CREATE TABLE `product-codes` (
   UNIQUE KEY `NPN` (`NPN`),
   UNIQUE KEY `ISBN` (`ISBN`),
   UNIQUE KEY `ASIN` (`ASIN`)
-) ENGINE=InnoDB AUTO_INCREMENT=77 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for question
@@ -255,7 +272,7 @@ CREATE TABLE `seller` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for seller-product
@@ -305,4 +322,4 @@ CREATE TABLE `web-based-seller` (
   `url` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `ID_FK` FOREIGN KEY (`id`) REFERENCES `seller` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;

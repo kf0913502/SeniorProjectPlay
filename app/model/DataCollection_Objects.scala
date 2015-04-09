@@ -38,4 +38,5 @@ package object DataCollectionModel {
   implicit val OfferRead = Json.reads[WebOffer]
   implicit val relatedRead = Json.reads[Related]
   implicit val questionRead = Json.reads[Question]
+  implicit val WebPriceReductionRead = Json.reads[WebPriceReduction]
 }

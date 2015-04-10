@@ -53,8 +53,9 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   def productExists(productCodes: Map[String, String]) : String =
   {
     val stmt = db.createStatement
-    val codes = productCodes.filter(_._2 != "")
-    val query = codes.map{case (key,value) => value.split(",").map(X => key + " like '%" + X + "%'")}.flatten.mkString(" or ")
+    val codes = productCodes.filter(X => X._2 != "" && X._2 != null)
+
+    val query = codes.map{case (key,value) => value.split(",").map(X => "(" + key + " like '%," + X + ",%' or " + key + " like '" + X + ",%' or " + key + " like '%," + X + "' or " + key + " like '" + X + "')")}.flatten.mkString(" or ")
     val rs = stmt.executeQuery("select id from `product-codes` where " + query)
 
     if (rs.next())
@@ -368,6 +369,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   def retrieveProduct(codes :  Map[String, String]): APPModel.Product =
   {
     val id = productExists(codes)
+    if (id == "") return null
     val productInfo = retrieveProductInfo(codes)
     val desc = lookup("desc","text","product-codes", id)
     val postings = retrieveWebPostings(id)

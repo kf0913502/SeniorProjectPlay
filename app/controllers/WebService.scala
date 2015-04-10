@@ -20,8 +20,11 @@ object WebService extends Controller{
 
 
   def getProduct(code : String, codeType : String) = Action{
-
-    Ok(Json.toJson(APP_DBManager.retrieveProduct(Map(codeType -> code))))
+    val result = APP_DBManager.retrieveProduct(Map(codeType -> code))
+    if (result != null)
+      Ok(Json.toJson(result))
+    else 
+      NotFound("")
   }
 
 

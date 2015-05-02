@@ -218,6 +218,10 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   }
 
 
+  def insertOntologyTree(ontologyNode: DataCollectionModel.OntologyNode): Unit =
+  {
+
+  }
   def insertWebPriceReduction(reduction: DataCollectionModel.WebPriceReduction): Unit =
   {
     val values = List(productExists(reduction.codes), lookup("web-based-seller", "id", "url", reduction.sellerURL)(0), reduction.oldPrice, reduction.newPrice )
@@ -230,6 +234,11 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   /***************************Retrieval Functionality************************************/
 
+  def retrieveAllProductcodesID() : List[String] =
+  {
+    lookup("product-codes","id","1", "1")
+
+  }
   def retrieveProductcodes(codesID : String) : Map[String, String] =
   {
     val stmt = db.createStatement

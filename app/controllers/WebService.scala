@@ -144,6 +144,11 @@ object WebService extends Controller{
     Action{
       Ok(Json.toJson(APP_DBManager.retrieveOffersInCategory(name)) )
     }
+
+    def getAllProductCodeIDs() =
+    Action{
+      Ok(Json.toJson(APP_DBManager.retrieveAllProductCodeIDs()) )
+    }
   }
 
 

@@ -28,6 +28,7 @@ package object DataCollectionModel {
   case class Question(question : String, answers : List[String], productCodes : Map[String, String])
   case class Related(C1 : Map[String, String], C2 : Map[String, String])
 
+  case class OntologyNode(children : List[OntologyNode], features : List[String], sentiment : Integer)
   implicit val ProductRead = Json.reads[Product]
   implicit val DescRead = Json.reads[Desc]
   implicit val WebPostingRead = Json.reads[WebPosting]
@@ -39,4 +40,5 @@ package object DataCollectionModel {
   implicit val relatedRead = Json.reads[Related]
   implicit val questionRead = Json.reads[Question]
   implicit val WebPriceReductionRead = Json.reads[WebPriceReduction]
+  implicit val OntologyNodeRead = Json.reads[OntologyNode]
 }

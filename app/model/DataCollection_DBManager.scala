@@ -80,4 +80,9 @@ object DataCollection_DBManager {
   {
     mySqlAssistant.insertWebPriceReduction(reduction)
   }
+
+  def insertOntologyTree(ontologyNode : OntologyNode): Unit =
+  {
+    mySqlAssistant.insertOntologyTree(ontologyNode)
+  }
 }

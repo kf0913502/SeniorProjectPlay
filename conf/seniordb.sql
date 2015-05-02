@@ -1,22 +1,22 @@
 /*
 Navicat MySQL Data Transfer
 
-Source Server         : localSeniorDB
-Source Server Version : 50621
+Source Server         : SeniorDB
+Source Server Version : 50542
 Source Host           : localhost:3306
 Source Database       : seniordb
 
 Target Server Type    : MYSQL
-Target Server Version : 50621
+Target Server Version : 50542
 File Encoding         : 65001
 
-Date: 2015-04-09 08:45:02
+Date: 2015-05-02 03:24:17
 */
 
 SET FOREIGN_KEY_CHECKS=0;
 
 -- ----------------------------
--- Table structure for answer
+-- Table structure for `answer`
 -- ----------------------------
 DROP TABLE IF EXISTS `answer`;
 CREATE TABLE `answer` (
@@ -29,7 +29,11 @@ CREATE TABLE `answer` (
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for customer-review
+-- Records of answer
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `customer-review`
 -- ----------------------------
 DROP TABLE IF EXISTS `customer-review`;
 CREATE TABLE `customer-review` (
@@ -45,7 +49,11 @@ CREATE TABLE `customer-review` (
 ) ENGINE=InnoDB AUTO_INCREMENT=31397 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for desc
+-- Records of customer-review
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `desc`
 -- ----------------------------
 DROP TABLE IF EXISTS `desc`;
 CREATE TABLE `desc` (
@@ -59,7 +67,11 @@ CREATE TABLE `desc` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for expert-review
+-- Records of desc
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `expert-review`
 -- ----------------------------
 DROP TABLE IF EXISTS `expert-review`;
 CREATE TABLE `expert-review` (
@@ -74,7 +86,11 @@ CREATE TABLE `expert-review` (
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for get-notifed
+-- Records of expert-review
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `get-notifed`
 -- ----------------------------
 DROP TABLE IF EXISTS `get-notifed`;
 CREATE TABLE `get-notifed` (
@@ -89,7 +105,11 @@ CREATE TABLE `get-notifed` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for images
+-- Records of get-notifed
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `images`
 -- ----------------------------
 DROP TABLE IF EXISTS `images`;
 CREATE TABLE `images` (
@@ -104,7 +124,11 @@ CREATE TABLE `images` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for independent-seller
+-- Records of images
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `independent-seller`
 -- ----------------------------
 DROP TABLE IF EXISTS `independent-seller`;
 CREATE TABLE `independent-seller` (
@@ -122,7 +146,11 @@ CREATE TABLE `independent-seller` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for local-seller
+-- Records of independent-seller
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `local-seller`
 -- ----------------------------
 DROP TABLE IF EXISTS `local-seller`;
 CREATE TABLE `local-seller` (
@@ -139,7 +167,11 @@ CREATE TABLE `local-seller` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for offer
+-- Records of local-seller
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `offer`
 -- ----------------------------
 DROP TABLE IF EXISTS `offer`;
 CREATE TABLE `offer` (
@@ -157,7 +189,11 @@ CREATE TABLE `offer` (
 ) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for offer_products
+-- Records of offer
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `offer_products`
 -- ----------------------------
 DROP TABLE IF EXISTS `offer_products`;
 CREATE TABLE `offer_products` (
@@ -170,7 +206,40 @@ CREATE TABLE `offer_products` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for price-reduction
+-- Records of offer_products
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `ontology-features`
+-- ----------------------------
+DROP TABLE IF EXISTS `ontology-features`;
+CREATE TABLE `ontology-features` (
+  `feature` varchar(20) DEFAULT NULL,
+  `nodeID` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- ----------------------------
+-- Records of ontology-features
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `ontology-nodes`
+-- ----------------------------
+DROP TABLE IF EXISTS `ontology-nodes`;
+CREATE TABLE `ontology-nodes` (
+  `parent` int(11) DEFAULT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`),
+  KEY `ontologyNodes_FK` (`parent`),
+  CONSTRAINT `ontologyNodes_FK` FOREIGN KEY (`parent`) REFERENCES `ontology-nodes` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- ----------------------------
+-- Records of ontology-nodes
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `price-reduction`
 -- ----------------------------
 DROP TABLE IF EXISTS `price-reduction`;
 CREATE TABLE `price-reduction` (
@@ -187,7 +256,11 @@ CREATE TABLE `price-reduction` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for product
+-- Records of price-reduction
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `product`
 -- ----------------------------
 DROP TABLE IF EXISTS `product`;
 CREATE TABLE `product` (
@@ -203,7 +276,11 @@ CREATE TABLE `product` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for product-category
+-- Records of product
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `product-category`
 -- ----------------------------
 DROP TABLE IF EXISTS `product-category`;
 CREATE TABLE `product-category` (
@@ -217,7 +294,11 @@ CREATE TABLE `product-category` (
 ) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for product-codes
+-- Records of product-category
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `product-codes`
 -- ----------------------------
 DROP TABLE IF EXISTS `product-codes`;
 CREATE TABLE `product-codes` (
@@ -236,7 +317,11 @@ CREATE TABLE `product-codes` (
 ) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for question
+-- Records of product-codes
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `question`
 -- ----------------------------
 DROP TABLE IF EXISTS `question`;
 CREATE TABLE `question` (
@@ -252,7 +337,11 @@ CREATE TABLE `question` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for related
+-- Records of question
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `related`
 -- ----------------------------
 DROP TABLE IF EXISTS `related`;
 CREATE TABLE `related` (
@@ -265,7 +354,11 @@ CREATE TABLE `related` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for seller
+-- Records of related
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `seller`
 -- ----------------------------
 DROP TABLE IF EXISTS `seller`;
 CREATE TABLE `seller` (
@@ -275,7 +368,11 @@ CREATE TABLE `seller` (
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for seller-product
+-- Records of seller
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `seller-product`
 -- ----------------------------
 DROP TABLE IF EXISTS `seller-product`;
 CREATE TABLE `seller-product` (
@@ -299,7 +396,28 @@ CREATE TABLE `seller-product` (
 ) ENGINE=InnoDB AUTO_INCREMENT=5289 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for user-account
+-- Records of seller-product
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `sentiment`
+-- ----------------------------
+DROP TABLE IF EXISTS `sentiment`;
+CREATE TABLE `sentiment` (
+  `product_codes` int(11) NOT NULL,
+  `sentiment_neg` int(11) DEFAULT NULL,
+  `sentiment_pos` int(11) DEFAULT NULL,
+  `feature` varchar(20) NOT NULL,
+  PRIMARY KEY (`product_codes`,`feature`),
+  CONSTRAINT `sentiment_productCodes_FK` FOREIGN KEY (`product_codes`) REFERENCES `product-codes` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- ----------------------------
+-- Records of sentiment
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `user-account`
 -- ----------------------------
 DROP TABLE IF EXISTS `user-account`;
 CREATE TABLE `user-account` (
@@ -313,7 +431,11 @@ CREATE TABLE `user-account` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for web-based-seller
+-- Records of user-account
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `web-based-seller`
 -- ----------------------------
 DROP TABLE IF EXISTS `web-based-seller`;
 CREATE TABLE `web-based-seller` (
@@ -323,3 +445,7 @@ CREATE TABLE `web-based-seller` (
   PRIMARY KEY (`id`),
   CONSTRAINT `ID_FK` FOREIGN KEY (`id`) REFERENCES `seller` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
+
+-- ----------------------------
+-- Records of web-based-seller
+-- ----------------------------

@@ -1,16 +1,16 @@
 /*
 Navicat MySQL Data Transfer
 
-Source Server         : SeniorDB
-Source Server Version : 50542
+Source Server         : localSeniorDB
+Source Server Version : 50621
 Source Host           : localhost:3306
 Source Database       : seniordb
 
 Target Server Type    : MYSQL
-Target Server Version : 50542
+Target Server Version : 50621
 File Encoding         : 65001
 
-Date: 2015-05-05 15:51:05
+Date: 2015-05-05 18:16:35
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -233,20 +233,20 @@ DROP TABLE IF EXISTS `ontology-nodes`;
 CREATE TABLE `ontology-nodes` (
   `parent` int(11) DEFAULT NULL,
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `product-codes` int(11) NOT NULL,
+  `category-id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `ontologyNodes_FK` (`parent`),
-  KEY `ontologyNodes_productCodes_FK` (`product-codes`),
-  CONSTRAINT `ontologyNodes_FK` FOREIGN KEY (`parent`) REFERENCES `ontology-nodes` (`id`),
-  CONSTRAINT `ontologyNodes_productCodes_FK` FOREIGN KEY (`product-codes`) REFERENCES `product-codes` (`id`)
+  KEY `ontologyNodes_CategoryID_FK` (`category-id`),
+  CONSTRAINT `ontologyNodes_CategoryID_FK` FOREIGN KEY (`category-id`) REFERENCES `product-category` (`id`),
+  CONSTRAINT `ontologyNodes_FK` FOREIGN KEY (`parent`) REFERENCES `ontology-nodes` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Records of ontology-nodes
 -- ----------------------------
-INSERT INTO `ontology-nodes` VALUES (null, '2', '78');
-INSERT INTO `ontology-nodes` VALUES ('2', '3', '78');
-INSERT INTO `ontology-nodes` VALUES ('2', '4', '78');
+INSERT INTO `ontology-nodes` VALUES (null, '2', '0');
+INSERT INTO `ontology-nodes` VALUES ('2', '3', '0');
+INSERT INTO `ontology-nodes` VALUES ('2', '4', '0');
 
 -- ----------------------------
 -- Table structure for `price-reduction`
@@ -302,11 +302,12 @@ CREATE TABLE `product-category` (
   UNIQUE KEY `name` (`name`),
   KEY `parent_id` (`parent_id`),
   CONSTRAINT `parent-categoy` FOREIGN KEY (`parent_id`) REFERENCES `product-category` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Records of product-category
 -- ----------------------------
+INSERT INTO `product-category` VALUES ('0', null, 'camera');
 INSERT INTO `product-category` VALUES ('33', null, 'General Things');
 INSERT INTO `product-category` VALUES ('34', '33', 'Phone');
 

@@ -145,9 +145,9 @@ object WebService extends Controller{
       Ok(Json.toJson(APP_DBManager.retrieveOffersInCategory(name)) )
     }
 
-    def getAllProductCodeIDs() =
+    def getAllProductsInCategory(category : String) =
     Action{
-      Ok(Json.toJson(APP_DBManager.retrieveAllProductCodeIDs()) )
+      Ok(Json.toJson(DataCollection_DBManager.retrieveAllProductsInCategory(category)) )
     }
 
   def insertOntologyTree()=
@@ -166,6 +166,11 @@ object WebService extends Controller{
   def getProductCodesID(code : String, codeType : String) =
   Action{
     Ok("")
+  }
+
+  def getAllProductCodes() =
+  Action{
+    Ok(Json.toJson(DataCollection_DBManager.retrieveAllProductCodes()))
   }
 
 

@@ -53,10 +53,7 @@ object APP_DBManager {
   }
 
 
-  def retrieveAllProductCodeIDs() : List[String] =
-  {
-    mySqlAssistant.retrieveAllProductcodesID()
-  }
+
 
 
 

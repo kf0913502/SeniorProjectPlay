@@ -30,7 +30,7 @@ package object DataCollectionModel {
 
   case class OntologyNode(var children : List[OntologyNode], var features : List[String], sentiment : Int)
 
-  case class OntologyTree(root : OntologyNode, codesID : String)
+  case class OntologyTree(root : OntologyNode, category : String)
   {
     def getBFSNodes(): List[OntologyNode] =
     {

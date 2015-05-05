@@ -220,24 +220,25 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   }
 
 
-  def insertOntologyNodes(ontologyNode : DataCollectionModel.OntologyNode, codesID : String, parentKey : String)
+  def insertOntologyNodes(ontologyNode : DataCollectionModel.OntologyNode, category : String, parentKey : String)
   {
+    val categoryID = lookup("product-category","id", "name", category)(0)
     val key = {
       if (parentKey != "")
-      insertQuery("ontology-nodes",List("product-codes", "parent"),List(codesID, parentKey),true)
+      insertQuery("ontology-nodes",List("category-id", "parent"),List(categoryID, parentKey),true)
     else
-      insertQuery("ontology-nodes",List("product-codes"),List(codesID),true)
+      insertQuery("ontology-nodes",List("product-codes"),List(categoryID),true)
     }
     ontologyNode.features.foreach(f => insertQuery("ontology-features", List("feature", "nodeID"), List(f,key)))
 
-    ontologyNode.children.foreach(insertOntologyNodes(_,codesID,key))
+    ontologyNode.children.foreach(insertOntologyNodes(_,categoryID,key))
 
   }
 
 
   def insertOntologyTree(ontologyTree: DataCollectionModel.OntologyTree): Unit =
   {
-    insertOntologyNodes(ontologyTree.root,ontologyTree.codesID,"")
+    insertOntologyNodes(ontologyTree.root,ontologyTree.category,"")
   }
   def insertWebPriceReduction(reduction: DataCollectionModel.WebPriceReduction): Unit =
   {
@@ -251,11 +252,25 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   /***************************Retrieval Functionality************************************/
 
-  def retrieveAllProductcodesID() : List[String] =
+  def retrieveAllProductcodes() : List[Map[String, String]] =
   {
-    lookup("product-codes","id","1", "1")
+    val stmt = db.createStatement
+    val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
 
+    lookup("product-codes","id","1", "1")
+    var result = List[Map[String, String]]()
+    val rs = stmt.executeQuery("Select " + fields.mkString(",") + " from `product-codes`")
+    while(rs.next())
+    {
+      var codes = Map[String, String]()
+      fields.foreach(i => codes += (i -> rs.getString(i)))
+      result :+= codes
+    }
+
+    result
   }
+
+
   def retrieveProductcodes(codesID : String) : Map[String, String] =
   {
     val stmt = db.createStatement
@@ -438,10 +453,10 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   }
 
-  def retrieveOntologyTree(codesID : String): DataCollectionModel.OntologyTree =
+  def retrieveOntologyTree(category : String): DataCollectionModel.OntologyTree =
   {
     val stmt = db.createStatement
-    val rs = stmt.executeQuery("select * from `ontology-nodes` where `product-codes` = '" + codesID + "' ORDER BY parent" )
+    val rs = stmt.executeQuery("select * from `ontology-nodes` where `category-id` = '" + category + "' ORDER BY parent" )
 
     val nodes  = scala.collection.mutable.Map[String, DataCollectionModel.OntologyNode]()
     var root = true
@@ -454,7 +469,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       if (root)
         rootNode = nodes(rs.getString("id"))
 
-          root = false
+      root = false
 
       if (rs.getString("parent") != null)
       nodes(rs.getString("parent")).children = nodes(rs.getString("parent")).children :+ nodes(rs.getString("id"))
@@ -465,7 +480,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     }
 
 
-    DataCollectionModel.OntologyTree(rootNode,codesID)
+    DataCollectionModel.OntologyTree(rootNode,category)
 
 
 

@@ -86,8 +86,19 @@ object DataCollection_DBManager {
     mySqlAssistant.insertOntologyTree(ontologyTree)
   }
 
-  def retrieveOntologyTree(codesID : String): DataCollectionModel.OntologyTree =
+  def retrieveOntologyTree(category : String): DataCollectionModel.OntologyTree =
   {
-    mySqlAssistant.retrieveOntologyTree(codesID : String)
+    mySqlAssistant.retrieveOntologyTree(category : String)
+  }
+
+
+  def retrieveAllProductCodes(): List[Map[String, String]] =
+  {
+    mySqlAssistant.retrieveAllProductcodes()
+  }
+
+  def retrieveAllProductsInCategory(category : String): List[APPModel.Product] =
+  {
+    retrieveAllProductCodes().map(APP_DBManager.retrieveProduct(_)).filter(x => x.info.category.name == category)
   }
 }

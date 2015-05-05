@@ -149,6 +149,26 @@ object WebService extends Controller{
     Action{
       Ok(Json.toJson(APP_DBManager.retrieveAllProductCodeIDs()) )
     }
+
+  def insertOntologyTree()=
+    Action{
+      response =>
+        val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.OntologyTree]
+        Ok({DataCollection_DBManager.insertOntologyTree(modelJsonObject.get);"OK"})
+    }
+
+  def getOntologyTree(codesID : String) =
+  Action{
+    Ok(Json.toJson(DataCollection_DBManager.retrieveOntologyTree(codesID)) )
+  }
+
+  def getProductCodesID(code : String, codeType : String) =
+  Action{
+    Ok("")
+  }
+
+
   }
 
 

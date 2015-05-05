@@ -1,9 +1,11 @@
 package model
 
-import model.APPModel
+
 import play.api.db._
 import play.api.Application
 import java.sql.Statement
+
+
 /**
  * Created by kkk on 3/12/2015.
  */
@@ -218,9 +220,24 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   }
 
 
-  def insertOntologyTree(ontologyNode: DataCollectionModel.OntologyNode): Unit =
+  def insertOntologyNodes(ontologyNode : DataCollectionModel.OntologyNode, codesID : String, parentKey : String)
   {
+    val key = {
+      if (parentKey != "")
+      insertQuery("ontology-nodes",List("product-codes", "parent"),List(codesID, parentKey),true)
+    else
+      insertQuery("ontology-nodes",List("product-codes"),List(codesID),true)
+    }
+    ontologyNode.features.foreach(f => insertQuery("ontology-features", List("feature", "nodeID"), List(f,key)))
 
+    ontologyNode.children.foreach(insertOntologyNodes(_,codesID,key))
+
+  }
+
+
+  def insertOntologyTree(ontologyTree: DataCollectionModel.OntologyTree): Unit =
+  {
+    insertOntologyNodes(ontologyTree.root,ontologyTree.codesID,"")
   }
   def insertWebPriceReduction(reduction: DataCollectionModel.WebPriceReduction): Unit =
   {
@@ -420,6 +437,40 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     offers
 
   }
+
+  def retrieveOntologyTree(codesID : String): DataCollectionModel.OntologyTree =
+  {
+    val stmt = db.createStatement
+    val rs = stmt.executeQuery("select * from `ontology-nodes` where `product-codes` = '" + codesID + "' ORDER BY parent" )
+
+    val nodes  = scala.collection.mutable.Map[String, DataCollectionModel.OntologyNode]()
+    var root = true
+    var rootNode : DataCollectionModel.OntologyNode = null
+    while(rs.next())
+    {
+
+      nodes(rs.getString("id")) = DataCollectionModel.OntologyNode(List(),List(),0)
+
+      if (root)
+        rootNode = nodes(rs.getString("id"))
+
+          root = false
+
+      if (rs.getString("parent") != null)
+      nodes(rs.getString("parent")).children = nodes(rs.getString("parent")).children :+ nodes(rs.getString("id"))
+
+      val features = lookup("ontology-features","feature", "nodeID",rs.getString("id"))
+
+      nodes(rs.getString("id")).features = features
+    }
+
+
+    DataCollectionModel.OntologyTree(rootNode,codesID)
+
+
+
+  }
+
 
 
 }

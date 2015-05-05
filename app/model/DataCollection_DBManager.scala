@@ -81,8 +81,13 @@ object DataCollection_DBManager {
     mySqlAssistant.insertWebPriceReduction(reduction)
   }
 
-  def insertOntologyTree(ontologyNode : OntologyNode): Unit =
+  def insertOntologyTree(ontologyTree: OntologyTree): Unit =
   {
-    mySqlAssistant.insertOntologyTree(ontologyNode)
+    mySqlAssistant.insertOntologyTree(ontologyTree)
+  }
+
+  def retrieveOntologyTree(codesID : String): DataCollectionModel.OntologyTree =
+  {
+    mySqlAssistant.retrieveOntologyTree(codesID : String)
   }
 }

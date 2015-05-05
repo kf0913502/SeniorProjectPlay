@@ -74,6 +74,12 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   /**********************************DATA INSERTION***********************************/
 
+  def insertProductSentiment(sentimentTree : DataCollectionModel.OntologyTree, codes : Map[String, String]): Unit =
+  {
+    val fields = List("product_codes", "sentiment_pos", "feature")
+
+    sentimentTree.getBFSNodes().foreach(x => insertQuery("sentiment",fields,List(productExists(codes), x.sentiment.toString,x.features(0)) ))
+  }
   def insertCustomerReview(review : DataCollectionModel.CustomerReview)
   {
     review.text = review.text.replace("'", "")
@@ -257,7 +263,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val stmt = db.createStatement
     val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
 
-    lookup("product-codes","id","1", "1")
+    lookup("product-codes","id","", "")
     var result = List[Map[String, String]]()
     val rs = stmt.executeQuery("Select " + fields.mkString(",") + " from `product-codes`")
     while(rs.next())
@@ -285,7 +291,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   {
     val stmt = db.createStatement
     val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
-    val rs = stmt.executeQuery("Select name, " + fields.mkString(",") + " from product,`product-codes` where name like '%" + name + "%' and codes = id")
+    val rs = stmt.executeQuery("Select name, " + fields.mkString(",") + " from product,`product-codes` where name like '" + name + "%' and codes = id")
     var results = List[APPModel.Product]()
 
     while(rs.next()) {

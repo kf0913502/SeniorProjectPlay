@@ -1,16 +1,16 @@
 /*
 Navicat MySQL Data Transfer
 
-Source Server         : localSeniorDB
-Source Server Version : 50621
+Source Server         : SeniorDB
+Source Server Version : 50542
 Source Host           : localhost:3306
 Source Database       : seniordb
 
 Target Server Type    : MYSQL
-Target Server Version : 50621
+Target Server Version : 50542
 File Encoding         : 65001
 
-Date: 2015-05-05 18:16:35
+Date: 2015-05-06 00:19:13
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -46,11 +46,12 @@ CREATE TABLE `customer-review` (
   PRIMARY KEY (`id`),
   KEY `product-code_FK` (`product-codes`),
   CONSTRAINT `product-code_FK` FOREIGN KEY (`product-codes`) REFERENCES `product-codes` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Records of customer-review
 -- ----------------------------
+INSERT INTO `customer-review` VALUES ('1', 'This device is awesome. I love this device. This is sexy Device. I like this Device.', '2015-05-05 22:50:08', 'amazon', '78', 'my review');
 
 -- ----------------------------
 -- Table structure for `desc`
@@ -222,9 +223,12 @@ CREATE TABLE `ontology-features` (
 -- ----------------------------
 -- Records of ontology-features
 -- ----------------------------
-INSERT INTO `ontology-features` VALUES ('phone', '2');
-INSERT INTO `ontology-features` VALUES ('sexy', '3');
-INSERT INTO `ontology-features` VALUES ('hot', '4');
+INSERT INTO `ontology-features` VALUES ('phone', '9');
+INSERT INTO `ontology-features` VALUES ('device', '10');
+INSERT INTO `ontology-features` VALUES ('phone', '11');
+INSERT INTO `ontology-features` VALUES ('device', '12');
+INSERT INTO `ontology-features` VALUES ('phone', '13');
+INSERT INTO `ontology-features` VALUES ('device', '14');
 
 -- ----------------------------
 -- Table structure for `ontology-nodes`
@@ -239,14 +243,15 @@ CREATE TABLE `ontology-nodes` (
   KEY `ontologyNodes_CategoryID_FK` (`category-id`),
   CONSTRAINT `ontologyNodes_CategoryID_FK` FOREIGN KEY (`category-id`) REFERENCES `product-category` (`id`),
   CONSTRAINT `ontologyNodes_FK` FOREIGN KEY (`parent`) REFERENCES `ontology-nodes` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Records of ontology-nodes
 -- ----------------------------
-INSERT INTO `ontology-nodes` VALUES (null, '2', '0');
-INSERT INTO `ontology-nodes` VALUES ('2', '3', '0');
-INSERT INTO `ontology-nodes` VALUES ('2', '4', '0');
+INSERT INTO `ontology-nodes` VALUES (null, '9', '34');
+INSERT INTO `ontology-nodes` VALUES ('9', '10', '34');
+INSERT INTO `ontology-nodes` VALUES (null, '13', '34');
+INSERT INTO `ontology-nodes` VALUES ('13', '14', '34');
 
 -- ----------------------------
 -- Table structure for `price-reduction`
@@ -302,14 +307,14 @@ CREATE TABLE `product-category` (
   UNIQUE KEY `name` (`name`),
   KEY `parent_id` (`parent_id`),
   CONSTRAINT `parent-categoy` FOREIGN KEY (`parent_id`) REFERENCES `product-category` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Records of product-category
 -- ----------------------------
-INSERT INTO `product-category` VALUES ('0', null, 'camera');
 INSERT INTO `product-category` VALUES ('33', null, 'General Things');
-INSERT INTO `product-category` VALUES ('34', '33', 'Phone');
+INSERT INTO `product-category` VALUES ('34', '33', 'phone');
+INSERT INTO `product-category` VALUES ('37', null, 'camera');
 
 -- ----------------------------
 -- Table structure for `product-codes`

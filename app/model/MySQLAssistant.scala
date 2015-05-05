@@ -233,11 +233,11 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       if (parentKey != "")
       insertQuery("ontology-nodes",List("category-id", "parent"),List(categoryID, parentKey),true)
     else
-      insertQuery("ontology-nodes",List("product-codes"),List(categoryID),true)
+      insertQuery("ontology-nodes",List("category-id"),List(categoryID),true)
     }
     ontologyNode.features.foreach(f => insertQuery("ontology-features", List("feature", "nodeID"), List(f,key)))
 
-    ontologyNode.children.foreach(insertOntologyNodes(_,categoryID,key))
+    ontologyNode.children.foreach(insertOntologyNodes(_,category,key))
 
   }
 

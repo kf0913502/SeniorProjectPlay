@@ -87,7 +87,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
  
     if (id == "") return
     val fields = List("review-text", "source", "product-codes", "title")
-    val values = List(review.text, review.websiteName, id, review.title)
+    val values = List(review.text, review.websiteName, id, review.title.replace("'", ""))
     val TN = "customer-review"
     insertQuery(TN, fields, values)
 
@@ -221,8 +221,8 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   def insertQuestion(question : DataCollectionModel.Question): Unit =
   {
     val codesID = productExists(question.productCodes)
-    val questionID = insertQuery("question", List("question-text", "product-codes"), List(question.question, codesID), true)
-    question.answers.foreach(A => insertQuery("answer", List("answer-text", "question-id"), List(A,questionID)))
+    val questionID = insertQuery("question", List("question-text", "product-codes"), List(question.question.replace("'",""), codesID), true)
+    question.answers.foreach(A => insertQuery("answer", List("answer-text", "question-id"), List(A.replace("'",""),questionID)))
   }
 
 

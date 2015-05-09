@@ -338,9 +338,9 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val stmt = db.createStatement
     var customerReviews : List[APPModel.CustomerReview] = List()
 
-    val rs = stmt.executeQuery("select `review-text`, `date-added`, source from `customer-review` where `product-codes` = '" + codesID + "'")
+    val rs = stmt.executeQuery("select `title`,`review-text`, `date-added`, source from `customer-review` where `product-codes` = '" + codesID + "'")
     while(rs.next())
-      customerReviews = customerReviews :+ APPModel.CustomerReview("",rs.getString("review-text"),rs.getString("date-added"),rs.getString("source"))
+      customerReviews = customerReviews :+ APPModel.CustomerReview(rs.getString("title"),rs.getString("review-text"),rs.getString("date-added"),rs.getString("source"))
     customerReviews
   }
 

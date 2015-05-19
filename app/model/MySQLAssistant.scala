@@ -83,6 +83,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   def insertCustomerReview(review : DataCollectionModel.CustomerReview)
   {
     review.text = review.text.replace("'", "")
+//    println(review.text)
     val id = productExists(review.codes)
  
     if (id == "") return
@@ -124,7 +125,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   def inserWebSellerDesc(desc : DataCollectionModel.Desc)
   {
     val ids = lookup("web-based-seller", "id", "url", desc.sellerURL)
-    insertQuery("desc", List("seller-id", "product-codes", "text"), List(ids(0), productExists(desc.codes), desc.descText))
+    insertQuery("desc", List("seller-id", "product-codes", "text"), List(ids(0), productExists(desc.codes), desc.descText.replace("'","")))
   }
 
   def insertWebPosting(posting : DataCollectionModel.WebPosting)
@@ -291,14 +292,15 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   {
     val stmt = db.createStatement
     val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
-    val rs = stmt.executeQuery("Select name, " + fields.mkString(",") + " from product,`product-codes` where name like '" + name + "%' and codes = id")
+    val rs = stmt.executeQuery("Select name, id, " + fields.mkString(",") + " from product,`product-codes` where name like '" + name + "%' and codes = id")
     var results = List[APPModel.Product]()
 
     while(rs.next()) {
       val value: String = rs.getString("name")
       val key = fields.filter(x => rs.getString(x) != "").map(x => (x, rs.getString(x))).toMap
+      val images = lookup("images", "URL", "product-codes-id", rs.getString("id"))
 
-      results = results :+ APPModel.Product(APPModel.ProductInfo(key, value, APPModel.Category("", "", ""),"", List("")),  List(""),List(),List() ,List(),List(), List(), List(), List(), List())
+      results = results :+ APPModel.Product(APPModel.ProductInfo(key, value, APPModel.Category("", "", ""),"", images),  List(""),List(),List() ,List(),List(), List(), List(), List(), List())
     }
 
     results

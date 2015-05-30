@@ -49,7 +49,10 @@ object APP_DBManager {
 
   def retrieveOffersInCategory(name : String) : List[APPModel.WebOffer] =
   {
-    mySqlAssistant.retrieveOffersInCategory(name)
+    var offers = List[List[APPModel.WebOffer]]()
+    mySqlAssistant.retrieveCategoryChildren(name).foreach(offers +:= mySqlAssistant.retrieveOffersInCategory(_))
+
+    offers.flatten
   }
 
 

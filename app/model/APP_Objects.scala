@@ -12,9 +12,9 @@ package object APPModel {
                      webPosting: List[WebPosting], localPosting: List[LocalPosting], customerReviews: List[CustomerReview], expertReviews: List[ExpertReview],
                       offers : List[WebOffer], related : List[ProductInfo], questions : List[Question], priceReductions : List[PriceReduction])
 
-  case class ProductInfo(codes: Map[String, String], name: String, category: Category, dateAdded: String = "", images: List[String])
+  case class ProductInfo(codes: Map[String, String], var name: String, category: Category, dateAdded: String = "", images: List[String])
 
-  case class WebPosting(price: Double, seller: WebBasedSeller, URL: String)
+  case class WebPosting(price: Double, seller: WebBasedSeller, URL: String, used: Boolean)
 
   case class LocalPosting(price: Double, location: Location)
 
@@ -22,7 +22,7 @@ package object APPModel {
 
   case class ExpertReview(URL: String, title: String, webSiteName: String, id: String = "")
 
-  case class CustomerReview(title: String, text: String, dateAdded: String, sourceWebsite: String, id: String = "")
+  case class CustomerReview(var title: String, var text: String, dateAdded: String, sourceWebsite: String, id: String = "")
 
 
   case class WebBasedSeller(logo: String, URL: String, id: String = "")

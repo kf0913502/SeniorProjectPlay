@@ -1,18 +1,21 @@
 package model
 
 
+import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
+
+import edu.stanford.nlp.util.CoreMap
 import play.api.db._
 import play.api.Application
 import java.sql.Statement
-
-
+import scala.collection.mutable.Queue
+import SentimentAnalysis._
 /**
  * Created by kkk on 3/12/2015.
  */
 case class MySQLAssistant(app : Application) extends DBAssistant{
 
-  val db = DB.getConnection()(app)
 
+  implicit def bool2int(b : Boolean) = if (b) 1 else 0
 
   /*********************************** GENERAL UTILITY**************************************/
 
@@ -27,6 +30,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   def lookup(TN : String, colA : String, colB : String, valB: String) : List[String] =
   {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     var query = "Select `" + colA + "` from `" + TN + "` "
     if (colB != "") query = query + "where `" + colB + "` = '" + valB + "'"
@@ -35,33 +39,45 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     var results : List[String] = List()
     while(rs.next())
       results = results :+ rs.getString(colA)
+    db.close();
     results
+
   }
 
 
   def insertQuery(TN : String, fields: List[String], values: List[String], returnGeneratedKey : Boolean = false )
    = {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     stmt.executeUpdate(createInsertQuery(TN, fields, values), Statement.RETURN_GENERATED_KEYS)
+    db.close()
     if (returnGeneratedKey){
       val rs = stmt.getGeneratedKeys()
       rs.next()
+
       rs.getInt(1).toString()
+
     }
-    else ""
+    else
+      ""
+
   }
 
 
   def productExists(productCodes: Map[String, String]) : String =
   {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     val codes = productCodes.filter(X => X._2 != "" && X._2 != null)
 
     val query = codes.map{case (key,value) => value.split(",").map(X => "(" + key + " like '%," + X + ",%' or " + key + " like '" + X + ",%' or " + key + " like '%," + X + "' or " + key + " like '" + X + "')")}.flatten.mkString(" or ")
     val rs = stmt.executeQuery("select id from `product-codes` where " + query)
-
+    db.close()
     if (rs.next())
+    {
+
       rs.getString("id")
+    }
     else
       ""
   }
@@ -82,6 +98,11 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   }
   def insertCustomerReview(review : DataCollectionModel.CustomerReview)
   {
+    val db = DB.getConnection()(app)
+    val sentences = SentimentCalculator.getSentences(review)
+    val graphs = SentimentCalculator.getGraphs(sentences)
+
+
     review.text = review.text.replace("'", "")
 //    println(review.text)
     val id = productExists(review.codes)
@@ -90,7 +111,32 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val fields = List("review-text", "source", "product-codes", "title")
     val values = List(review.text, review.websiteName, id, review.title.replace("'", ""))
     val TN = "customer-review"
-    insertQuery(TN, fields, values)
+    val key = insertQuery(TN, fields, values,true)
+    val pstmt = db.prepareStatement("INSERT INTO `review-sentences` VALUES(?,?," + key + ")" )
+
+    /*Should be in class sentence;*/
+    val sentenceOutputStream = new ByteArrayOutputStream()
+    val sentenceOOutputStream = new ObjectOutputStream(sentenceOutputStream)
+    sentenceOOutputStream.writeObject(sentences)
+    val sentencesBytes = sentenceOutputStream.toByteArray()
+    /*Should be in class sentence*/
+
+    /*Should be in class List[Graphs];*/
+    val graphsOutputStream = new ByteArrayOutputStream()
+    val graphsOOutputStream = new ObjectOutputStream(graphsOutputStream)
+    graphsOOutputStream.writeObject(graphs)
+    val graphsBytes = graphsOutputStream.toByteArray()
+    /*Should be in class List[Graphs]*/
+
+
+    val graphsInputStream = new ByteArrayInputStream(graphsBytes)
+    val sentencesInputStream = new ByteArrayInputStream(sentencesBytes)
+
+    pstmt.setBinaryStream(1, sentencesInputStream, sentencesBytes.length)
+    pstmt.setBinaryStream(2, graphsInputStream, graphsBytes.length)
+    pstmt.executeUpdate()
+    pstmt.close()
+
 
   }
 
@@ -131,11 +177,12 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   def insertWebPosting(posting : DataCollectionModel.WebPosting)
   {
     val ids = lookup("web-based-seller", "id", "url", posting.sellerURL)
-    insertQuery("seller-product", List("price", "product-codes", "seller_id", "url"), List(posting.price, productExists(posting.codes), ids(0), posting.postingURL))
+    insertQuery("seller-product", List("price", "product-codes", "seller_id", "url", "used"), List(posting.price, productExists(posting.codes), ids(0), posting.postingURL, (posting.used : Int).toString))
   }
 
   def insertWebSeller(seller : DataCollectionModel.WebSeller) : String =
   {
+
     val ids = lookup("web-based-seller", "id", "url", seller.URL)
 
     if (ids.length > 0) return ids(0)
@@ -191,6 +238,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     }
     else
     {
+      val db = DB.getConnection()(app)
       val stmt = db.createStatement
       val fields = List("UPC","EAN","NPN","ISBN","ASIN")
       val rs = stmt.executeQuery("select UPC,EAN,NPN,ISBN,ASIN from `product-codes` where id = '" + codesID + "'")
@@ -203,7 +251,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
       codes = codes.filter(_._2 != "")
       stmt.executeUpdate("update `product-codes` set " + codes.map{case(k,v) => k + "='" + v + "'"}.mkString(",") + " where id = '" + codesID + "'")
-
+      db.close()
 
     }
 
@@ -261,6 +309,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   def retrieveAllProductcodes() : List[Map[String, String]] =
   {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
 
@@ -273,23 +322,25 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       fields.foreach(i => codes += (i -> rs.getString(i)))
       result :+= codes
     }
-
+    db.close()
     result
   }
 
 
   def retrieveProductcodes(codesID : String) : Map[String, String] =
   {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
     val rs = stmt.executeQuery("Select "+ fields.mkString(",") +" from `product-codes` where id ='" + codesID + "'")
     rs.next()
-
+    db.close()
     fields.filter(x => rs.getString(x) != "").map(x => (x, rs.getString(x))).toMap
   }
 
   def searchProducts(name : String): List[APPModel.Product] =
   {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
     val rs = stmt.executeQuery("Select name, id, " + fields.mkString(",") + " from product,`product-codes` where name like '" + name + "%' and codes = id")
@@ -302,14 +353,14 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
       results = results :+ APPModel.Product(APPModel.ProductInfo(key, value, APPModel.Category("", "", ""),"", images),  List(""),List(),List() ,List(),List(), List(), List(), List(), List())
     }
-
+    db.close()
     results
   }
 
 
   def retrieveProductInfo(codes : Map[String, String]) : APPModel.ProductInfo =
   {
-
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     val id = productExists(codes)
 
@@ -321,43 +372,51 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val date = rs.getString("date_added")
 
     val images = lookup("images", "URL", "product-codes-id", id)
-
+    db.close()
     APPModel.ProductInfo(codes, name, APPModel.Category("","",category),date,images)
   }
 
   def retrieveWebPostings(codesID : String) : List[APPModel.WebPosting] =
   {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     var postings : List[APPModel.WebPosting] = List()
-    val rs = stmt.executeQuery("select price, logo, w.URL, s.url from `seller-product` s, `web-based-seller` w where `product-codes` ='" + codesID +  "'and seller_id = w.id")
+    val rs = stmt.executeQuery("select price, logo, w.URL,used, s.url from `seller-product` s, `web-based-seller` w where `product-codes` ='" + codesID +  "'and seller_id = w.id")
     while(rs.next())
-      postings = postings :+ APPModel.WebPosting(rs.getString("price").toDouble,APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.URL")),rs.getString("s.url"))
+      postings = postings :+ APPModel.WebPosting(rs.getString("price").toDouble,APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.URL")),rs.getString("s.url"), if (rs.getString("used") == 1) true else false)
+
+   db.close()
     postings
   }
 
   def retrieveCustomerReviews(codesID : String) : List[APPModel.CustomerReview] =
   {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     var customerReviews : List[APPModel.CustomerReview] = List()
 
     val rs = stmt.executeQuery("select `title`,`review-text`, `date-added`, source from `customer-review` where `product-codes` = '" + codesID + "'")
     while(rs.next())
       customerReviews = customerReviews :+ APPModel.CustomerReview(rs.getString("title"),rs.getString("review-text"),rs.getString("date-added"),rs.getString("source"))
+    db.close()
     customerReviews
   }
 
   def retrieveExpertReviews(codesID : String) : List[APPModel.ExpertReview] =
   {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     var expertReviews : List[APPModel.ExpertReview] = List()
     val rs = stmt.executeQuery("select url, title, `website-name` from `expert-review` where `product-codes` = '" + codesID + "'")
     while(rs.next())
       expertReviews = expertReviews :+ APPModel.ExpertReview(rs.getString("url"),rs.getString("title"),rs.getString("website-name"))
+    db.close()
     expertReviews
   }
 
   def retrieveRelatedProducts(codesID : String) : List[APPModel.ProductInfo] =
    {
+
      val ids = lookup("related", "PID2", "PID1", codesID)
      var relatedProducts : List[APPModel.ProductInfo] = List()
 
@@ -372,6 +431,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   def retrieveQuestions(codesID : String) : List[APPModel.Question] =
   {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     var questions : List[APPModel.Question] = List()
     val rs = stmt.executeQuery("select id, `question-text` from question where `product-codes` = '" + codesID + "'")
@@ -380,11 +440,13 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       val answers = lookup("answer", "answer-text", "question-id", rs.getString("id"))
       questions = questions :+ APPModel.Question(rs.getString("question-text"),answers)
     }
+    db.close()
     questions
   }
 
   def retrievePriceReductions(codesID : String) : List[APPModel.PriceReduction] =
   {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     var reductions : List[APPModel.PriceReduction] = List()
     val rs = stmt.executeQuery("select oldPrice,newPrice, logo, w.url from `price-reduction` p, `web-based-seller` w where `product-codes` ='" + codesID +  "'and sellerID = w.id")
@@ -392,11 +454,13 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val productInfo = retrieveProductInfo(retrieveProductcodes(codesID))
     while(rs.next())
       reductions = reductions :+ APPModel.PriceReduction(APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.url")),productInfo,rs.getString("newPrice"),rs.getString("oldPrice"))
+    db.close()
     reductions
   }
 
   def retrieveOffers(codesID : String) : List[APPModel.WebOffer] =
   {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     var offers : List[APPModel.WebOffer] = List()
     val offersID = lookup("offer_products","offer_id","product-codes",codesID)
@@ -412,11 +476,12 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       offers = offers :+ APPModel.WebOffer(productInfos,rs.getString("description"),rs.getString("price"),
         APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.url")),rs.getString("start_date"),rs.getString("end_date"))
     })
-
+    db.close()
     offers
   }
   def retrieveProduct(codes :  Map[String, String]): APPModel.Product =
   {
+
     val id = productExists(codes)
     if (id == "") return null
     val productInfo = retrieveProductInfo(codes)
@@ -442,8 +507,26 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     //TODO: 1. see how to display images for categories 2. see how to make use of parent category
   }
 
+  def retrieveCategoryChildren(categoryName : String) :  List[String] =
+  {
+
+
+    var categoryQueue = Queue[String](categoryName)
+    var results = List[String]()
+    while(!categoryQueue.isEmpty)
+    {
+      val curCategory = categoryQueue.dequeue()
+      val children = lookup("product-category","name", "parent_id", lookup("product-category", "id", "name", curCategory)(0))
+      children.foreach(categoryQueue.enqueue(_))
+      results +:= curCategory
+    }
+
+    results
+
+  }
   def retrieveOffersInCategory(categoryName : String) : List[APPModel.WebOffer] =
   {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     val rs = stmt.executeQuery("select logo, w.url, off.id, price, description, start_date, end_date " +
       "from product pr, offer_products op,`product-category` pc, offer off ,`web-based-seller` w where " +
@@ -456,13 +539,14 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       offers = offers :+ APPModel.WebOffer(productInfos,rs.getString("description"),rs.getString("price"),
       APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.url")),rs.getString("start_date"),rs.getString("end_date"))
     }
-
+    db.close()
     offers
 
   }
 
   def retrieveOntologyTree(category : String): DataCollectionModel.OntologyTree =
   {
+    val db = DB.getConnection()(app)
     val stmt = db.createStatement
     val rs = stmt.executeQuery("select * from `ontology-nodes` where `category-id` = '" + category + "' ORDER BY parent" )
 
@@ -487,7 +571,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       nodes(rs.getString("id")).features = features
     }
 
-
+    db.close()
     DataCollectionModel.OntologyTree(rootNode,category)
 
 
@@ -495,5 +579,31 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   }
 
 
+  def retrieveReveiwsSentencescodes (codes : Map[String, String]) = (List[List[CoreMap]], List[List[WeightedGraph]]) =
+  {
+    val db = DB.getConnection()(app)
+    val stmt = db.createStatement
+    val id = productExists(codes)
+    val rs = stmt.executeQuery("select sentences, graphs from `review-sentences` r where r.review_ID in (select id from `customer-review` where  `product-codes` = "+ id + ")")
+    var reviews = List[List[CoreMap]]()
+    var reviewGraphs = List[List[WeightedGraph]]()
+
+    while(rs.next())
+    {
+      val st =  rs.getObject(1).asInstanceOf[Array[Byte]]
+      val sentencesBAIS = new ByteArrayInputStream(st)
+      val sentencesOIS = new ObjectInputStream(sentencesBAIS)
+      val sentences =  sentencesOIS.readObject().asInstanceOf[List[CoreMap]]
+      reviews :+= sentences
+
+      val graph =  rs.getObject(2).asInstanceOf[Array[Byte]]
+      val graphBAIS = new ByteArrayInputStream(graph)
+      val graphOIS = new ObjectInputStream(sentencesBAIS)
+      val graphs =  sentencesOIS.readObject().asInstanceOf[List[CoreMap]]
+      reviewGraphs :+= graphs
+    }
+
+    (reviews, reviewGraphs)
+  }
 
 }

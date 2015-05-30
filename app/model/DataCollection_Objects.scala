@@ -1,6 +1,8 @@
 /**
  * Created by kkk on 3/16/2015.
  */
+
+package model
 import play.api.libs.json.Json
 
 import scala.collection.mutable.Queue
@@ -11,7 +13,7 @@ package object DataCollectionModel {
 
   case class Desc(codes: Map[String, String], sellerURL: String, descText: String)
 
-  case class WebPosting(codes: Map[String, String], price: String, sellerURL: String, postingURL: String)
+  case class WebPosting(codes: Map[String, String], price: String, sellerURL: String, postingURL: String, used: Boolean, name : String = "")
 
   case class ExpertReview(codes: Map[String, String], reviewURL: String, title: String, websiteName: String)
 
@@ -21,11 +23,12 @@ package object DataCollectionModel {
 
   case class WebSeller(URL : String, logo : String, name : String)
 
-  case class WebOffer(codes : List[Map[String, String]], sellerURL : String, price : String, desc : String, startDate : String, endDate : String, viewCount : String)
+  case class WebOffer(names : List[String], categoryName : String, codes : List[Map[String, String]], sellerURL : String, price : String, desc : String, startDate : String, endDate : String, viewCount : String)
 
   case class WebPriceReduction(codes : Map[String, String], sellerURL : String, newPrice : String, oldPrice : String)
 
   case class Question(question : String, answers : List[String], productCodes : Map[String, String])
+
   case class Related(C1 : Map[String, String], C2 : Map[String, String])
 
   case class OntologyNode(var children : List[OntologyNode], var features : List[String], var sentiment : Double)

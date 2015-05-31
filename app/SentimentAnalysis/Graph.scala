@@ -1,7 +1,5 @@
 package SentimentAnalysis
 
-import java.io.{ObjectOutputStream, ByteArrayOutputStream}
-
 /**
  * Created by abdelrazektarek on 5/2/15.
  */
@@ -64,14 +62,12 @@ class ConcreteUndirectedGraph extends UndirectedGraph {
 }
 
 
-
+import java.io.{ByteArrayOutputStream, ObjectOutputStream}
 
 /**
- * Created by karAdmin on 5/24/2015.
+ * Created by karAdmin on 5/31/2015.
  */
-
-trait SerializableTrait extends Serializable
-case class WeightedGraph(defaultWeight: Int) extends UndirectedGraph with SerializableTrait{
+case class WeightedGraph(defaultWeight: Int) extends UndirectedGraph{
   type Node = NodeImpl
   type Edge = EdgeImpl with Weight
 
@@ -98,3 +94,4 @@ case class WeightedGraph(defaultWeight: Int) extends UndirectedGraph with Serial
   override protected def newEdge(one: Node, other: Node): Edge with Weight =
     new EdgeImpl(one, other) with Weight
 }
+

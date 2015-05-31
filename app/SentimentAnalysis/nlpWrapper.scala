@@ -8,9 +8,8 @@ import edu.stanford.nlp.sentiment.SentimentCoreAnnotations
 import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation
 import edu.stanford.nlp.trees.{PennTreebankLanguagePack, Tree, TreebankLanguagePack, TypedDependency}
 import edu.stanford.nlp.util.CoreMap
-
 import scala.collection.JavaConversions._
-
+import java.util.Properties
 /**
  * Created by abdelrazektarek on 5/2/15.
  */

@@ -2,6 +2,9 @@ package model
 
 import java.io.{FileOutputStream, ObjectOutputStream}
 
+import edu.stanford.nlp.util.CoreMap
+import SentimentAnalysis.WeightedGraph
+
 /**
  * Created by kkk on 3/8/2015.
  */
@@ -11,7 +14,6 @@ object DataCollection_DBManager {
 
   import play.api.Play.current
   import DataCollectionModel._
-  import SentimentAnalysis._
   val mySqlAssistant = DBAssistantFactory.instantiate(MySQL).asInstanceOf[MySQLAssistant]
 
   def insertUserAccount(userName: String, password: String, firstName: String, lastName: String, email: String)
@@ -107,7 +109,7 @@ object DataCollection_DBManager {
 
   def insertOntologyTree(ontologyTree: OntologyTree): Unit =
   {
-
+    println("hello")
     mySqlAssistant.insertOntologyTree(ontologyTree)
   }
 
@@ -124,19 +126,23 @@ object DataCollection_DBManager {
     mySqlAssistant.retrieveAllProductcodes()
   }
 
-  def retrieveAllProductsInCategory(category : String): List[APPModel.Product] =
+  def retrieveAllProductsInCategory(category : String): List[APPModel.CustomerReview] =
   {
 
     var products =  retrieveAllProductCodes().map(APP_DBManager.retrieveProduct(_)).filter(x => x.info.category.name == category)
 
     products.foreach(x => x.customerReviews.foreach(y => {y.text = y.text.replaceAll("\"", ""); y.title = y.title.replaceAll("\"", "") }))
     products.foreach(x => x.info.name = x.info.name.replaceAll("\"", ""))
-    products
+    products.map(_.customerReviews).flatten
   }
 
   def insertProductSentiment(ontologyTree : OntologyTree, codes : Map[String, String]): Unit =
   {
-    val mySqlAssistant = DBAssistantFactory.instantiate(MySQL).asInstanceOf[MySQLAssistant]
     mySqlAssistant.insertProductSentiment(ontologyTree, codes)
+  }
+
+  def retrieveReveiwsSentencescodes (codes : Map[String, String]) : (List[List[CoreMap]], List[List[WeightedGraph]]) =
+  {
+    mySqlAssistant.retrieveReveiwsSentences(codes)
   }
 }

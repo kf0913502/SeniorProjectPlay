@@ -4,14 +4,12 @@ package model
 import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
 
 import edu.stanford.nlp.util.CoreMap
+import SentimentAnalysis.{SentimentCalculator, WeightedGraph}
 import play.api.db._
 import play.api.Application
 import java.sql.Statement
 import scala.collection.mutable.Queue
-import SentimentAnalysis._
-/**
- * Created by kkk on 3/12/2015.
- */
+
 case class MySQLAssistant(app : Application) extends DBAssistant{
 
 
@@ -39,7 +37,8 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     var results : List[String] = List()
     while(rs.next())
       results = results :+ rs.getString(colA)
-    db.close();
+    db.close()
+    stmt.close()
     results
 
   }
@@ -51,15 +50,23 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val stmt = db.createStatement
     stmt.executeUpdate(createInsertQuery(TN, fields, values), Statement.RETURN_GENERATED_KEYS)
     db.close()
+
     if (returnGeneratedKey){
       val rs = stmt.getGeneratedKeys()
+
       rs.next()
 
-      rs.getInt(1).toString()
-
+      val result = rs.getInt(1).toString()
+      stmt.close()
+      db.close()
+      result
     }
     else
+    {
+      stmt.close()
+      db.close()
       ""
+    }
 
   }
 
@@ -72,14 +79,23 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
     val query = codes.map{case (key,value) => value.split(",").map(X => "(" + key + " like '%," + X + ",%' or " + key + " like '" + X + ",%' or " + key + " like '%," + X + "' or " + key + " like '" + X + "')")}.flatten.mkString(" or ")
     val rs = stmt.executeQuery("select id from `product-codes` where " + query)
-    db.close()
+
     if (rs.next())
     {
 
-      rs.getString("id")
+      val result = rs.getString("id")
+      stmt.close()
+      db.close()
+
+      result
     }
     else
+    {
+      stmt.close()
+      db.close()
+
       ""
+    }
   }
 
   /***********************************END GENERAL UTILITY*****************************/
@@ -136,6 +152,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     pstmt.setBinaryStream(2, graphsInputStream, graphsBytes.length)
     pstmt.executeUpdate()
     pstmt.close()
+    db.close()
 
 
   }
@@ -251,7 +268,9 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
       codes = codes.filter(_._2 != "")
       stmt.executeUpdate("update `product-codes` set " + codes.map{case(k,v) => k + "='" + v + "'"}.mkString(",") + " where id = '" + codesID + "'")
+      stmt.close()
       db.close()
+
 
     }
 
@@ -322,7 +341,9 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       fields.foreach(i => codes += (i -> rs.getString(i)))
       result :+= codes
     }
+    stmt.close()
     db.close()
+
     result
   }
 
@@ -334,8 +355,13 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val fields = List("UPC", "EAN", "NPN", "ISBN", "ASIN")
     val rs = stmt.executeQuery("Select "+ fields.mkString(",") +" from `product-codes` where id ='" + codesID + "'")
     rs.next()
+
+
+    val result = fields.filter(x => rs.getString(x) != "").map(x => (x, rs.getString(x))).toMap
+    stmt.close()
     db.close()
-    fields.filter(x => rs.getString(x) != "").map(x => (x, rs.getString(x))).toMap
+
+    result
   }
 
   def searchProducts(name : String): List[APPModel.Product] =
@@ -353,7 +379,9 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
       results = results :+ APPModel.Product(APPModel.ProductInfo(key, value, APPModel.Category("", "", ""),"", images),  List(""),List(),List() ,List(),List(), List(), List(), List(), List())
     }
+    stmt.close()
     db.close()
+
     results
   }
 
@@ -372,6 +400,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val date = rs.getString("date_added")
 
     val images = lookup("images", "URL", "product-codes-id", id)
+    stmt.close()
     db.close()
     APPModel.ProductInfo(codes, name, APPModel.Category("","",category),date,images)
   }
@@ -384,8 +413,9 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val rs = stmt.executeQuery("select price, logo, w.URL,used, s.url from `seller-product` s, `web-based-seller` w where `product-codes` ='" + codesID +  "'and seller_id = w.id")
     while(rs.next())
       postings = postings :+ APPModel.WebPosting(rs.getString("price").toDouble,APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.URL")),rs.getString("s.url"), if (rs.getString("used") == 1) true else false)
-
+    stmt.close()
    db.close()
+
     postings
   }
 
@@ -398,7 +428,10 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val rs = stmt.executeQuery("select `title`,`review-text`, `date-added`, source from `customer-review` where `product-codes` = '" + codesID + "'")
     while(rs.next())
       customerReviews = customerReviews :+ APPModel.CustomerReview(rs.getString("title"),rs.getString("review-text"),rs.getString("date-added"),rs.getString("source"))
+
+    stmt.close()
     db.close()
+
     customerReviews
   }
 
@@ -410,7 +443,10 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val rs = stmt.executeQuery("select url, title, `website-name` from `expert-review` where `product-codes` = '" + codesID + "'")
     while(rs.next())
       expertReviews = expertReviews :+ APPModel.ExpertReview(rs.getString("url"),rs.getString("title"),rs.getString("website-name"))
+
+    stmt.close()
     db.close()
+
     expertReviews
   }
 
@@ -440,7 +476,10 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       val answers = lookup("answer", "answer-text", "question-id", rs.getString("id"))
       questions = questions :+ APPModel.Question(rs.getString("question-text"),answers)
     }
+
+    stmt.close()
     db.close()
+
     questions
   }
 
@@ -454,7 +493,11 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val productInfo = retrieveProductInfo(retrieveProductcodes(codesID))
     while(rs.next())
       reductions = reductions :+ APPModel.PriceReduction(APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.url")),productInfo,rs.getString("newPrice"),rs.getString("oldPrice"))
+
+
+    stmt.close()
     db.close()
+
     reductions
   }
 
@@ -476,7 +519,10 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       offers = offers :+ APPModel.WebOffer(productInfos,rs.getString("description"),rs.getString("price"),
         APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.url")),rs.getString("start_date"),rs.getString("end_date"))
     })
+
+    stmt.close()
     db.close()
+
     offers
   }
   def retrieveProduct(codes :  Map[String, String]): APPModel.Product =
@@ -539,7 +585,10 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       offers = offers :+ APPModel.WebOffer(productInfos,rs.getString("description"),rs.getString("price"),
       APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.url")),rs.getString("start_date"),rs.getString("end_date"))
     }
+
+    stmt.close()
     db.close()
+
     offers
 
   }
@@ -570,8 +619,9 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
       nodes(rs.getString("id")).features = features
     }
-
+    stmt.close()
     db.close()
+
     DataCollectionModel.OntologyTree(rootNode,category)
 
 
@@ -579,7 +629,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   }
 
 
-  def retrieveReveiwsSentencescodes (codes : Map[String, String]) = (List[List[CoreMap]], List[List[WeightedGraph]]) =
+  def retrieveReveiwsSentences(codes : Map[String, String]) : (List[List[CoreMap]], List[List[WeightedGraph]]) =
   {
     val db = DB.getConnection()(app)
     val stmt = db.createStatement
@@ -598,10 +648,13 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
       val graph =  rs.getObject(2).asInstanceOf[Array[Byte]]
       val graphBAIS = new ByteArrayInputStream(graph)
-      val graphOIS = new ObjectInputStream(sentencesBAIS)
-      val graphs =  sentencesOIS.readObject().asInstanceOf[List[CoreMap]]
+      val graphOIS = new ObjectInputStream(graphBAIS)
+      val graphs =  graphOIS.readObject().asInstanceOf[List[WeightedGraph]]
       reviewGraphs :+= graphs
     }
+
+    stmt.close()
+    db.close()
 
     (reviews, reviewGraphs)
   }

@@ -104,7 +104,7 @@ object WebService extends Controller{
   def test() =
   Action{
     response =>
-      Ok("")
+      Ok(DataCollection_DBManager.retrieveReveiwsSentencescodes(Map("UPC" -> "013803244281")).toString())
   }
 
 

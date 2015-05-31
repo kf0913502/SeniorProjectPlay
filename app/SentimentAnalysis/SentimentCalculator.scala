@@ -1,14 +1,14 @@
 package SentimentAnalysis
 
-
 import model._
-import scala.collection.JavaConversions._
-import edu.stanford.nlp.ling.{CoreLabel, CoreAnnotations}
-import edu.stanford.nlp.pipeline.{Annotation, StanfordCoreNLP}
-import edu.stanford.nlp.sentiment.SentimentCoreAnnotations
-import edu.stanford.nlp.trees.{TypedDependency, PennTreebankLanguagePack, TreebankLanguagePack, Tree}
-import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation
+import edu.stanford.nlp.ling.CoreLabel
 import edu.stanford.nlp.util.CoreMap
+import play.api.libs.json.Json
+
+import scala.collection.JavaConversions._
+import scala.util.control.Breaks._
+
+
 import scala.util.control.Breaks._
 
 /**

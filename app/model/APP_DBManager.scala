@@ -23,7 +23,10 @@ object APP_DBManager {
     retrieveProduct(Map("UPC" -> "2555")).toString
   }
 
-
+  def login(email : String, pwd : String): Boolean =
+  {
+    mySqlAssistant.login(email, pwd)
+  }
   def insertUserAccount(userName: String, password: String, firstName: String, lastName: String, email: String)
   {
 

@@ -9,7 +9,6 @@ import play.api.db._
 import play.api.Application
 import java.sql.Statement
 import scala.collection.mutable.Queue
-
 case class MySQLAssistant(app : Application) extends DBAssistant{
 
 
@@ -140,7 +139,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     /*Should be in class List[Graphs];*/
     val graphsOutputStream = new ByteArrayOutputStream()
     val graphsOOutputStream = new ObjectOutputStream(graphsOutputStream)
-    graphsOOutputStream.writeObject(graphs)
+    graphsOOutputStream.writeObject(graphs.map(x => (x.nodes, x.edges)))
     val graphsBytes = graphsOutputStream.toByteArray()
     /*Should be in class List[Graphs]*/
 
@@ -628,15 +627,33 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   }
 
+  def retrieveAllProductCodesInCategory(categoryID : String): List[Map[String, String]] =
+  {
+    val db = DB.getConnection()(app)
+    val stmt = db.createStatement
 
-  def retrieveReveiwsSentences(codes : Map[String, String]) : (List[List[CoreMap]], List[List[WeightedGraph]]) =
+    val rs = stmt.executeQuery("select codes from product  where `category-id` = " + categoryID )
+    var result = List[String]()
+
+    while(rs.next())
+    {
+      result :+= rs.getString("codes")
+    }
+    db.close()
+    stmt.close()
+    result.map(retrieveProductcodes(_))
+
+
+  }
+
+  def retrieveReveiwsSentences(codes : Map[String, String]) :  List[List[(CoreMap, WeightedGraph)]]=
   {
     val db = DB.getConnection()(app)
     val stmt = db.createStatement
     val id = productExists(codes)
     val rs = stmt.executeQuery("select sentences, graphs from `review-sentences` r where r.review_ID in (select id from `customer-review` where  `product-codes` = "+ id + ")")
     var reviews = List[List[CoreMap]]()
-    var reviewGraphs = List[List[WeightedGraph]]()
+    var reviewGraphs = List[List[(WeightedGraph#Node, WeightedGraph#Edge)]]()
 
     while(rs.next())
     {
@@ -648,15 +665,43 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
       val graph =  rs.getObject(2).asInstanceOf[Array[Byte]]
       val graphBAIS = new ByteArrayInputStream(graph)
-      val graphOIS = new ObjectInputStream(graphBAIS)
-      val graphs =  graphOIS.readObject().asInstanceOf[List[WeightedGraph]]
+
+      val graphOIS = new ObjectInputStream(graphBAIS) {
+        override def resolveClass(desc: java.io.ObjectStreamClass): Class[_] = {
+          try { Class.forName(desc.getName, false, getClass.getClassLoader) }
+          catch { case ex: ClassNotFoundException => super.resolveClass(desc) }
+        }
+      }
+      val graphs =  graphOIS.readObject().asInstanceOf[List[(WeightedGraph#Node, WeightedGraph#Edge)]]
       reviewGraphs :+= graphs
     }
 
     stmt.close()
     db.close()
 
-    (reviews, reviewGraphs)
+
+    //val b =
+
+    val k = reviewGraphs.map(_.map( y=> (new WeightedGraph(1).assignGraph(y._1.asInstanceOf[List[WeightedGraph#NodeImpl]], y._2.asInstanceOf[List[WeightedGraph#Edge]]))))
+    reviews.zip(k).map(x => x._1.zip(x._2))
+
   }
+
+
+  def login(email : String, pwd : String) : Boolean =
+  {
+    val db = DB.getConnection()(app)
+    val stmt = db.createStatement
+
+    val rs = stmt.executeQuery("select * from `user-account` where username = '" + email + "' and password = '" + pwd + "'")
+
+    if (rs.next())
+      true
+    else
+      false
+
+  }
+
+
 
 }

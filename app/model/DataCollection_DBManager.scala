@@ -3,7 +3,8 @@ package model
 import java.io.{FileOutputStream, ObjectOutputStream}
 
 import edu.stanford.nlp.util.CoreMap
-import SentimentAnalysis.WeightedGraph
+import model.SentimentAnalysis.WeightedGraph
+
 
 /**
  * Created by kkk on 3/8/2015.
@@ -126,7 +127,12 @@ object DataCollection_DBManager {
     mySqlAssistant.retrieveAllProductcodes()
   }
 
-  def retrieveAllProductsInCategory(category : String): List[APPModel.CustomerReview] =
+  def retrieveAllProductCodesInCategory(categoryID : String): List[Map[String, String]] =
+  {
+    mySqlAssistant.retrieveAllProductCodesInCategory(categoryID)
+  }
+
+  def retrieveAllProductsReviewsInCategory(category : String): List[APPModel.CustomerReview] =
   {
 
     var products =  retrieveAllProductCodes().map(APP_DBManager.retrieveProduct(_)).filter(x => x.info.category.name == category)
@@ -141,8 +147,9 @@ object DataCollection_DBManager {
     mySqlAssistant.insertProductSentiment(ontologyTree, codes)
   }
 
-  def retrieveReveiwsSentencescodes (codes : Map[String, String]) : (List[List[CoreMap]], List[List[WeightedGraph]]) =
+  def retrieveReveiwsSentencescodes (codes : Map[String, String]) :List[List[(CoreMap, WeightedGraph)]] =
   {
     mySqlAssistant.retrieveReveiwsSentences(codes)
   }
+
 }

@@ -1,4 +1,4 @@
-package SentimentAnalysis
+package model.SentimentAnalysis
 
 /**
  * Created by abdelrazektarek on 5/2/15.
@@ -17,7 +17,7 @@ class Dijkstra[G <: WeightedGraph](graph: G) {
     => Boolean
 
   /**
-   * By default the SentimentAnalysis.Dijkstra algorithm processes all nodes reachable from
+   * By default the model.SentimentAnalysis.Dijkstra algorithm processes all nodes reachable from
    * <code>start</code> given to <code>compute()</code>.
    */
   val defaultStopCondition: StopCondition = (_, _, _) => true

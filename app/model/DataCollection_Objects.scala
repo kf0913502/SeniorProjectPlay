@@ -100,4 +100,6 @@ package object DataCollectionModel {
   implicit val WebPriceReductionwrite = Json.writes[WebPriceReduction]
   implicit val OntologyNodewrite = Json.writes[OntologyNode]
   implicit val OntologyTreewrite = Json.writes[OntologyTree]
+  //implicit val RankingProduct = Json.writes[(Map[String,String], model.DataCollectionModel.OntologyTree)]
+  //implicit val ProductRanking =  Json.writes[List[(Map[String,String], model.DataCollectionModel.OntologyTree)]]
 }

@@ -11,7 +11,8 @@ libraryDependencies ++= Seq(
   anorm,
   cache,
   ws,
-  "mysql" % "mysql-connector-java" % "5.1.27"
+  "mysql" % "mysql-connector-java" % "5.1.27",
+  "org.scala-lang.modules" %% "scala-pickling" % "0.10.1"
 )
 
 fork in run := false

@@ -104,7 +104,9 @@ object WebService extends Controller{
   def test() =
   Action{
     response =>
-      Ok(DataCollection_DBManager.retrieveReveiwsSentencescodes(Map("UPC" -> "013803244281")).toString())
+      //Ok(DataCollection_DBManager.retrieveOntologyTree("37").toString)
+      //Ok(SentimentAnalysis.SentimentCalculator.calcSentiment(Map("UPC" -> "013803244281")).toString())
+      Ok("OK")
   }
 
 
@@ -144,10 +146,17 @@ object WebService extends Controller{
       Ok(Json.toJson(APP_DBManager.retrieveOffersInCategory(name)) )
     }
 
-    def getAllProductsInCategory(category : String) =
+  def getReductionsInCategory(name : String)=
     Action{
-      Ok(Json.toJson(DataCollection_DBManager.retrieveAllProductsInCategory(category)) )
+      Ok(Json.toJson(APP_DBManager.retrieveOffersInCategory(name)) )
     }
+
+
+    def getAllProductsReviewsInCategory(category : String) =
+    Action{
+      Ok(Json.toJson(DataCollection_DBManager.retrieveAllProductsReviewsInCategory(category)) )
+    }
+
 
   def insertOntologyTree()=
     Action{
@@ -179,6 +188,38 @@ object WebService extends Controller{
       val modelJsonObject = parsedJson.validate[DataCollectionModel.OntologyTree]
       Ok({DataCollection_DBManager.insertProductSentiment(modelJsonObject.get, Map(codeType -> code));"OK"})
   }
+
+
+  def calculateSentiment(code : String, codeType : String) =
+    Action{
+      response =>
+        val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.OntologyTree]
+        Ok(Json.toJson(SentimentAnalysis.SentimentCalculator.calcSentiment(Map(codeType -> code), modelJsonObject.get)))
+    }
+
+
+  def compareProducts(category : String) =
+  Action{
+    response =>
+      val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+      val modelJsonObject = parsedJson.validate[DataCollectionModel.OntologyTree]
+
+     // Ok(Json.toJson(SentimentAnalysis.SentimentCalculator.compareProducts(category,modelJsonObject.get)))
+      Ok("")
+  }
+
+
+  def login(email : String, pwd : String)  =
+    Action{
+      response =>
+
+        if (APP_DBManager.login(email, pwd))
+          Ok("")
+        else
+          NonAuthoritativeInformation("")
+
+    }
 
 
   }

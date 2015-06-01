@@ -39,7 +39,7 @@ package object APPModel {
 
   case class User(pwd: String, email: String, fullName : String)
 
-
+  case class ProductRanking(ontologyTree : DataCollectionModel.OntologyTree, codes : Map[String, String])
   implicit val categoryFormat = Json.writes[Category]
   implicit val productInfoFormat = Json.writes[ProductInfo]
   implicit val webSellerFormat = Json.writes[WebBasedSeller]
@@ -53,7 +53,7 @@ package object APPModel {
   implicit val priceReductionFormat = Json.writes[PriceReduction]
   implicit val productFormat = Json.writes[Product]
   implicit val userFormat = Json.writes[User]
-
+  implicit val ProductRankingFormat = Json.writes[ProductRanking]
 
   implicit val RcategoryFormat = Json.reads[Category]
   implicit val RproductInfoFormat = Json.reads[ProductInfo]
@@ -67,6 +67,6 @@ package object APPModel {
   implicit val RquestionFormat = Json.reads[Question]
   implicit val RpriceReductionFormat = Json.reads[PriceReduction]
   implicit val RproductFormat = Json.reads[Product]
-  implicit val RuserFormat = Json.writes[User]
-
+  implicit val RuserFormat = Json.reads[User]
+  implicit val RProductRankingFormat = Json.reads[ProductRanking]
 }

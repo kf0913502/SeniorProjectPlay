@@ -5,10 +5,12 @@ import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, Byt
 
 import edu.stanford.nlp.util.CoreMap
 import SentimentAnalysis.{SentimentCalculator, WeightedGraph}
+import model.APPModel.PriceReduction
 import play.api.db._
 import play.api.Application
 import java.sql.Statement
 import scala.collection.mutable.Queue
+import com.google.gson.Gson
 case class MySQLAssistant(app : Application) extends DBAssistant{
 
 
@@ -113,9 +115,9 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   }
   def insertCustomerReview(review : DataCollectionModel.CustomerReview)
   {
-    val db = DB.getConnection()(app)
-    val sentences = SentimentCalculator.getSentences(review)
-    val graphs = SentimentCalculator.getGraphs(sentences)
+
+    var sentences = SentimentCalculator.getSentences(review)
+    var graphs = SentimentCalculator.getGraphs(sentences)
 
 
     review.text = review.text.replace("'", "")
@@ -127,33 +129,48 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val values = List(review.text, review.websiteName, id, review.title.replace("'", ""))
     val TN = "customer-review"
     val key = insertQuery(TN, fields, values,true)
-    val pstmt = db.prepareStatement("INSERT INTO `review-sentences` VALUES(?,?," + key + ")" )
+
 
     /*Should be in class sentence;*/
-    val sentenceOutputStream = new ByteArrayOutputStream()
-    val sentenceOOutputStream = new ObjectOutputStream(sentenceOutputStream)
+    var sentenceOutputStream = new ByteArrayOutputStream()
+    var sentenceOOutputStream = new ObjectOutputStream(sentenceOutputStream)
     sentenceOOutputStream.writeObject(sentences)
-    val sentencesBytes = sentenceOutputStream.toByteArray()
+    var sentencesBytes = sentenceOutputStream.toByteArray()
     /*Should be in class sentence*/
 
     /*Should be in class List[Graphs];*/
-    val graphsOutputStream = new ByteArrayOutputStream()
-    val graphsOOutputStream = new ObjectOutputStream(graphsOutputStream)
+    var graphsOutputStream = new ByteArrayOutputStream()
+    var graphsOOutputStream = new ObjectOutputStream(graphsOutputStream)
     graphsOOutputStream.writeObject(graphs.map(x => (x.nodes, x.edges)))
-    val graphsBytes = graphsOutputStream.toByteArray()
+    var graphsBytes = graphsOutputStream.toByteArray()
     /*Should be in class List[Graphs]*/
 
 
-    val graphsInputStream = new ByteArrayInputStream(graphsBytes)
-    val sentencesInputStream = new ByteArrayInputStream(sentencesBytes)
+    var graphsInputStream = new ByteArrayInputStream(graphsBytes)
+    var sentencesInputStream = new ByteArrayInputStream(sentencesBytes)
 
+    val db = DB.getConnection()(app)
+    val pstmt = db.prepareStatement("INSERT INTO `review-sentences` VALUES(?,?," + key + ")" )
     pstmt.setBinaryStream(1, sentencesInputStream, sentencesBytes.length)
     pstmt.setBinaryStream(2, graphsInputStream, graphsBytes.length)
     pstmt.executeUpdate()
     pstmt.close()
     db.close()
 
+    sentences = null
+    graphs = null
+    graphsInputStream = null
+    sentencesInputStream = null
 
+    graphsOutputStream = null
+    graphsOOutputStream = null
+    graphsBytes = null
+
+
+
+    sentencesBytes = null
+    sentenceOOutputStream = null
+    sentenceOutputStream = null
   }
 
 
@@ -392,7 +409,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val id = productExists(codes)
 
     val rs = stmt.executeQuery("Select product.name,date_added, c.name from product,`product-category` c where product.codes = '" + id + "' and c.id = `category-id`")
-    rs.next()
+    if (!rs.next()) return null
 
     val name = rs.getString("product.name")
     val category = rs.getString("c.name")
@@ -592,6 +609,29 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   }
 
+  def retrievePriceReductionsInCategory(categoryName : String) : List[APPModel.PriceReduction] =
+  {
+    val db = DB.getConnection()(app)
+    val stmt = db.createStatement
+    val rs = stmt.executeQuery("select pc.name, `product-codes`, logo, w.url, off.id, oldPrice, newPrice " +
+      "from product pr, `product-category` pc, `price-reduction` off ,`web-based-seller` w where " +
+      "w.id = off.sellerID and `category-id` = pc.id and pr.codes = `product-codes` and pc.name = '" + categoryName + "'")
+
+    var reductions : List[APPModel.PriceReduction] = List()
+    while(rs.next())
+    {
+      val seller = APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("logo"))
+      val info = APPModel.ProductInfo(retrieveProductcodes(rs.getString("product-codes")),rs.getString("pc.name"),APPModel.Category("","",categoryName),"",List())
+       reductions +:= APPModel.PriceReduction(seller,info,rs.getString("newPrice"),rs.getString("oldPrice"))
+    }
+
+    stmt.close()
+    db.close()
+
+    reductions
+
+  }
+
   def retrieveOntologyTree(category : String): DataCollectionModel.OntologyTree =
   {
     val db = DB.getConnection()(app)
@@ -645,7 +685,21 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
 
   }
+def retrieveProductsWithReviewSentences(category : String): List[Map[String, String]] =
+{
+  val db = DB.getConnection()(app)
+  val stmt = db.createStatement
 
+  val rs = stmt.executeQuery("select co.id from `product-codes` co where (select count(*) from `review-sentences` where review_ID in (select id from `customer-review` where  `product-codes` = co.id))")
+
+  var result = List[String]()
+  while(rs.next)
+  {
+    result +:= rs.getString("co.id")
+  }
+
+  result.map(retrieveProductcodes(_)).map(retrieveProduct(_)).filter(_.info.category.name == category).map(_.info.codes)
+}
   def retrieveReveiwsSentences(codes : Map[String, String]) :  List[List[(CoreMap, WeightedGraph)]]=
   {
     val db = DB.getConnection()(app)
@@ -701,6 +755,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
       false
 
   }
+
 
 
 

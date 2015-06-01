@@ -13,14 +13,12 @@ object SentimentCalculator {
 
    var wrapper = new nlpWrapper("tokenize, ssplit, pos, lemma, parse, sentiment")
 
-    def compareProducts(categoryID : String, ontologyTree : DataCollectionModel.OntologyTree): List[(Map[String, String], DataCollectionModel.OntologyTree)] =
+    def compareProducts(categoryID : String, ontologyTree : DataCollectionModel.OntologyTree)=
     {
-        val productCodes = DataCollection_DBManager.retrieveAllProductCodesInCategory(categoryID)
+        val productCodes = DataCollection_DBManager.retrieveProductsWithReviewSentences(categoryID)
 
-      productCodes.map(code => {
-        (code, calcSentiment(code, ontologyTree))
-
-      }).sortBy(_._2.root.sentiment).take(5)
+      productCodes.map(code =>
+        APPModel.ProductRanking(calcSentiment(code, ontologyTree), code))//.sortBy(_._2.root.sentiment)
     }
    def calcSentiment(codes : Map[String, String], ontologyTree : DataCollectionModel.OntologyTree) : DataCollectionModel.OntologyTree =  {
 
@@ -59,7 +57,7 @@ object SentimentCalculator {
      for (i <- 1 to numTokens) g.addNode
 
 
-     val dependency = wrapper.getDependencies(Sentence)
+     var dependency = wrapper.getDependencies(Sentence)
 
 
      for (d <- dependency) {
@@ -71,6 +69,8 @@ object SentimentCalculator {
          Gov.connectWith(dep)
        }
      }
+
+     dependency = null
      g
    }
 

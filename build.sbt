@@ -12,7 +12,8 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   "mysql" % "mysql-connector-java" % "5.1.27",
-  "org.scala-lang.modules" %% "scala-pickling" % "0.10.1"
+  "org.scala-lang.modules" %% "scala-pickling" % "0.10.1",
+  "com.google.code.gson" % "gson" % "2.2"
 )
 
 fork in run := false

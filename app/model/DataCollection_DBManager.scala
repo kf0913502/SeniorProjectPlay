@@ -27,7 +27,7 @@ object DataCollection_DBManager {
   {
     val mySqlAssistant = DBAssistantFactory.instantiate(MySQL).asInstanceOf[MySQLAssistant]
     var codes = posting.codes
-    if (posting.codes == null)
+    if (posting.codes.size == 0)
     {
       val m = MatcherVSM()
       val products = mySqlAssistant.searchProducts("")
@@ -132,10 +132,14 @@ object DataCollection_DBManager {
     mySqlAssistant.retrieveAllProductCodesInCategory(categoryID)
   }
 
+  def retrieveProductsWithReviewSentences(category : String)  =
+  {
+    mySqlAssistant.retrieveProductsWithReviewSentences(category)
+  }
   def retrieveAllProductsReviewsInCategory(category : String): List[APPModel.CustomerReview] =
   {
 
-    var products =  retrieveAllProductCodes().map(APP_DBManager.retrieveProduct(_)).filter(x => x.info.category.name == category)
+    var products =  retrieveAllProductCodes().map(APP_DBManager.retrieveProduct(_)).filter(_.info != null).filter(x => x.info.category.name == category)
 
     products.foreach(x => x.customerReviews.foreach(y => {y.text = y.text.replaceAll("\"", ""); y.title = y.title.replaceAll("\"", "") }))
     products.foreach(x => x.info.name = x.info.name.replaceAll("\"", ""))

@@ -8,6 +8,7 @@ import play.api.data._
 import play.api.data.Forms._
 import model._
 import play.api.libs.json.{Json, JsError}
+import com.google.gson.Gson
 /**
  * Created by kkk on 3/8/2015.
  */
@@ -204,11 +205,15 @@ object WebService extends Controller{
     response =>
       val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
       val modelJsonObject = parsedJson.validate[DataCollectionModel.OntologyTree]
-
-     // Ok(Json.toJson(SentimentAnalysis.SentimentCalculator.compareProducts(category,modelJsonObject.get)))
-      Ok("")
+      val gson = new Gson()
+      Ok(Json.toJson(SentimentAnalysis.SentimentCalculator.compareProducts(category,modelJsonObject.get)))
   }
 
+  def getPriceReductionsInCategory(category : String) =
+    Action{
+      response =>
+        Ok(Json.toJson(APP_DBManager.retrievePricereductionsInCategory(category)))
+    }
 
   def login(email : String, pwd : String)  =
     Action{

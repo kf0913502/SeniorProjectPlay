@@ -23,6 +23,8 @@ POST        /insertWebPriceReduction                controllers.WebService.inser
 GET         /test                                   controllers.WebService.test()
 GET         /getAllCategories                       controllers.WebService.getAllCategories()
 GET         /getOffersInCategory                    controllers.WebService.getOffersInCategory(name : String)
+GET         /getPriceReductionsInCategory           controllers.WebService.getPriceReductionsInCategory(category : String)
+
 GET         /getAllProductCodes                     controllers.WebService.getAllProductCodes()
 GET         /getAllProductsReviewsInCategory        controllers.WebService.getAllProductsReviewsInCategory(category : String)
 POST        /insertOntologyTree                     controllers.WebService.insertOntologyTree()

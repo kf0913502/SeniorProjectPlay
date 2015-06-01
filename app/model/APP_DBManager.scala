@@ -58,6 +58,13 @@ object APP_DBManager {
     offers.flatten
   }
 
+  def retrievePricereductionsInCategory(category : String) : List[APPModel.PriceReduction] =
+  {
+    mySqlAssistant.retrieveCategoryChildren(category).map(mySqlAssistant.retrievePriceReductionsInCategory(_)).flatten
+
+  }
+
+
 
 
 

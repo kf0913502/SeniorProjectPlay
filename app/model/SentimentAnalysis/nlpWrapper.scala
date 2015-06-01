@@ -18,18 +18,17 @@ case class nlpWrapper(annotators: String) {
    val props: Properties = new Properties
    props.setProperty("annotators", annotators)
    val pipeline: StanfordCoreNLP = new StanfordCoreNLP(props)
-
    def getSentences(text: String): List[CoreMap] = {
      // create an empty Annotation just with the given text
-     val document: Annotation = new Annotation(text)
+     var document: Annotation = new Annotation(text)
 
      // run all Annotators on this text
      pipeline.annotate(document)
 
      // these are all the sentences in this document
      // a CoreMap is essentially a Map that uses class objects as keys and has values with custom types
-     val sentences: List[CoreMap] = document.get(classOf[CoreAnnotations.SentencesAnnotation]).toList
-
+     var sentences: List[CoreMap] = document.get(classOf[CoreAnnotations.SentencesAnnotation]).toList
+      document = null
 
      sentences.toList
 
@@ -131,12 +130,17 @@ case class nlpWrapper(annotators: String) {
    }
 
    def getDependencies(Sentence:CoreMap): List[TypedDependency] ={
-     val tree: Tree = Sentence.get(classOf[TreeAnnotation])
+     var tree: Tree = Sentence.get(classOf[TreeAnnotation])
      // Get dependency tree
-     val tlp: TreebankLanguagePack = new PennTreebankLanguagePack()
-     val gsf = tlp.grammaticalStructureFactory
-     val gs = gsf.newGrammaticalStructure(tree)
-     val td = gs.typedDependenciesCollapsed
+     var tlp: TreebankLanguagePack = new PennTreebankLanguagePack()
+     var gsf = tlp.grammaticalStructureFactory
+     var gs = gsf.newGrammaticalStructure(tree)
+     var td = gs.typedDependenciesCollapsed
+
+     tree = null
+     tlp = null
+     gsf = null
+     gs = null
      //println("Dependencies:\n"+td)
      td.toList
    }

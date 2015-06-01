@@ -17,11 +17,6 @@ object DataCollection_DBManager {
   import DataCollectionModel._
   val mySqlAssistant = DBAssistantFactory.instantiate(MySQL).asInstanceOf[MySQLAssistant]
 
-  def insertUserAccount(userName: String, password: String, firstName: String, lastName: String, email: String)
-  {
-    val mySqlAssistant = DBAssistantFactory.instantiate(MySQL).asInstanceOf[MySQLAssistant]
-    mySqlAssistant.insertUserAccount(userName, password, firstName, lastName, email)
-  }
 
   def insertWebPosting(posting : DataCollectionModel.WebPosting): Unit =
   {

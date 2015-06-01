@@ -8,7 +8,6 @@ import play.api.data._
 import play.api.data.Forms._
 import model._
 import play.api.libs.json.{Json, JsError}
-import com.google.gson.Gson
 /**
  * Created by kkk on 3/8/2015.
  */
@@ -105,9 +104,10 @@ object WebService extends Controller{
   def test() =
   Action{
     response =>
+
       //Ok(DataCollection_DBManager.retrieveOntologyTree("37").toString)
       //Ok(SentimentAnalysis.SentimentCalculator.calcSentiment(Map("UPC" -> "013803244281")).toString())
-      Ok("OK")
+      response.session.get("connected").map{msg => Ok(msg + " me")}.get
   }
 
 
@@ -205,7 +205,6 @@ object WebService extends Controller{
     response =>
       val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
       val modelJsonObject = parsedJson.validate[DataCollectionModel.OntologyTree]
-      val gson = new Gson()
       Ok(Json.toJson(SentimentAnalysis.SentimentCalculator.compareProducts(category,modelJsonObject.get)))
   }
 
@@ -215,17 +214,24 @@ object WebService extends Controller{
         Ok(Json.toJson(APP_DBManager.retrievePricereductionsInCategory(category)))
     }
 
-  def login(email : String, pwd : String)  =
+  def login(username : String, pwd : String)  =
     Action{
       response =>
 
-        if (APP_DBManager.login(email, pwd))
+        if (APP_DBManager.login(username, pwd))
           Ok("")
         else
-          NonAuthoritativeInformation("")
+          Unauthorized("")
 
     }
 
+  def signup() =
+  Action{
+    response =>
+      val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+      val modelJsonObject = parsedJson.validate[APPModel.User]
+      Ok({APP_DBManager.insertUserAccount(modelJsonObject.get); "OK"})
+  }
 
   }
 

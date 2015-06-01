@@ -33,4 +33,7 @@ POST        /insertProductSentiment                 controllers.WebService.inser
 POST        /calculateSentiment                     controllers.WebService.calculateSentiment(code : String, codeType : String)
 POST        /compareProducts                        controllers.WebService.compareProducts(categoryID : String)
 GET         /getReductionsInCategory                controllers.WebService.getReductionsInCategory(name : String)
-GET         /login                                  controllers.WebService.login(email : String, pwd : String)
+GET         /login                                  controllers.WebService.login(username : String, pwd : String)
+POST        /signup                                 controllers.WebService.signup()
+
+

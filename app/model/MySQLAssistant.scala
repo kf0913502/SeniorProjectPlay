@@ -10,7 +10,6 @@ import play.api.db._
 import play.api.Application
 import java.sql.Statement
 import scala.collection.mutable.Queue
-import com.google.gson.Gson
 case class MySQLAssistant(app : Application) extends DBAssistant{
 
 
@@ -186,10 +185,10 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   }
 
-  def insertUserAccount(userName: String, password: String, firstName: String, lastName: String, email: String)
+  def insertUserAccount(user : APPModel.User)
   {
     val fields = List("username", "password", "firstname", "lastname", "email", "active")
-    val values = List(userName, password, firstName, lastName, email, "0")
+    val values = List(user.username, user.password, user.firstname, user.lastname, user.email, "0")
     val TN = "user-account"
     insertQuery(TN, fields, values)
 
@@ -197,8 +196,13 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   def insertWebSellerImage(img : DataCollectionModel.ProductImage): Unit =
   {
-    val ids = lookup("web-based-seller", "id", "url", img.sellerURL)
-    insertQuery("images", List("URL", "seller-id", "product-codes-id"), List(img.URL, ids(0),productExists(img.codes) ))
+    try {
+      val ids = lookup("web-based-seller", "id", "url", img.sellerURL)
+      insertQuery("images", List("URL", "seller-id", "product-codes-id"), List(img.URL, ids(0), productExists(img.codes)))
+    }
+    catch {
+      case e : Exception => println("Duplicate Image")
+    }
   }
 
   def inserWebSellerDesc(desc : DataCollectionModel.Desc)
@@ -428,7 +432,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     var postings : List[APPModel.WebPosting] = List()
     val rs = stmt.executeQuery("select price, logo, w.URL,used, s.url from `seller-product` s, `web-based-seller` w where `product-codes` ='" + codesID +  "'and seller_id = w.id")
     while(rs.next())
-      postings = postings :+ APPModel.WebPosting(rs.getString("price").toDouble,APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.URL")),rs.getString("s.url"), if (rs.getString("used") == 1) true else false)
+      postings = postings :+ APPModel.WebPosting(rs.getString("price").toDouble,APPModel.WebBasedSeller(rs.getString("logo"),rs.getString("w.URL")),rs.getString("s.url"), rs.getString("used"))
     stmt.close()
    db.close()
 
@@ -564,8 +568,17 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
   def retrieveAllCategories() : List[APPModel.Category] =
   {
+    val db = DB.getConnection()(app)
+    val stmt = db.createStatement
+    val rs = stmt.executeQuery("select parent_id, id, name, image from `product-category`")
 
-      lookup("product-category","name","","").map(X => APPModel.Category("","",X))
+    var results = List[APPModel.Category]()
+    while(rs.next())
+      results :+= APPModel.Category(rs.getString("id"),rs.getString("parent_id"),rs.getString("name"))
+
+    db.close()
+    rs.close()
+    results
     //TODO: 1. see how to display images for categories 2. see how to make use of parent category
   }
 
@@ -742,12 +755,12 @@ def retrieveProductsWithReviewSentences(category : String): List[Map[String, Str
   }
 
 
-  def login(email : String, pwd : String) : Boolean =
+  def login(username : String, pwd : String) : Boolean =
   {
     val db = DB.getConnection()(app)
     val stmt = db.createStatement
 
-    val rs = stmt.executeQuery("select * from `user-account` where username = '" + email + "' and password = '" + pwd + "'")
+    val rs = stmt.executeQuery("select * from `user-account` where username = '" + username + "' and password = '" + pwd + "'")
 
     if (rs.next())
       true

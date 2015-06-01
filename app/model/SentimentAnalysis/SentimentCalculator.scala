@@ -3,7 +3,7 @@ package model.SentimentAnalysis
 import edu.stanford.nlp.ling.CoreLabel
 import edu.stanford.nlp.util.CoreMap
 import model._
-
+import play.api.libs.json.{Json, JsError}
 import scala.util.control.Breaks._
 import scala.collection.JavaConversions._
 /**
@@ -16,10 +16,16 @@ object SentimentCalculator {
     def compareProducts(categoryID : String, ontologyTree : DataCollectionModel.OntologyTree)=
     {
         val productCodes = DataCollection_DBManager.retrieveProductsWithReviewSentences(categoryID)
+        val nodes = ontologyTree.getBFSNodes()
+        productCodes.map(
+        code => {
+          nodes.foreach(n => n.sentiment = 0.0)
+          Json.toJson(APPModel.ProductRanking(calcSentiment(code, ontologyTree), code))
 
-      productCodes.map(code =>
-        APPModel.ProductRanking(calcSentiment(code, ontologyTree), code))//.sortBy(_._2.root.sentiment)
+        })
+
     }
+        //.sortBy(_._2.root.sentiment)
    def calcSentiment(codes : Map[String, String], ontologyTree : DataCollectionModel.OntologyTree) : DataCollectionModel.OntologyTree =  {
 
      val product = APP_DBManager.retrieveProduct(codes)

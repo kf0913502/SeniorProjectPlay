@@ -14,7 +14,7 @@ package object APPModel {
 
   case class ProductInfo(codes: Map[String, String], var name: String, category: Category, dateAdded: String = "", images: List[String])
 
-  case class WebPosting(price: Double, seller: WebBasedSeller, URL: String, used: Boolean)
+  case class WebPosting(price: Double, seller: WebBasedSeller, URL: String, used: String)
 
   case class LocalPosting(price: Double, location: Location)
 
@@ -27,7 +27,6 @@ package object APPModel {
 
   case class WebBasedSeller(logo: String, URL: String, id: String = "")
 
-  case class UserAccount(username: String, password: String, firstName: String, lastName: String, email: String, active: String)
 
   case class Category(id: String, parentId: String, name: String)
 
@@ -36,8 +35,7 @@ package object APPModel {
   case class PriceReduction(seller : WebBasedSeller, product : ProductInfo , newPrice : String, oldPrice : String)
 
   case class Question(question : String, answers : List[String])
-
-  case class User(pwd: String, email: String, fullName : String)
+  case class User(username: String, password : String, firstname : String, lastname : String, email: String)
 
   case class ProductRanking(ontologyTree : DataCollectionModel.OntologyTree, codes : Map[String, String])
   implicit val categoryFormat = Json.writes[Category]

@@ -37,7 +37,7 @@ package object APPModel {
   case class Question(question : String, answers : List[String])
   case class User(username: String, password : String, firstname : String, lastname : String, email: String)
 
-  case class ProductRanking(ontologyTree : DataCollectionModel.OntologyTree, codes : Map[String, String])
+  case class ProductRanking(ontologyTree : DataCollectionModel.OntologyTree, productInfo : ProductInfo)
   implicit val categoryFormat = Json.writes[Category]
   implicit val productInfoFormat = Json.writes[ProductInfo]
   implicit val webSellerFormat = Json.writes[WebBasedSeller]

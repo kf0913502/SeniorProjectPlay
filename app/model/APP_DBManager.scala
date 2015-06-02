@@ -20,10 +20,11 @@ object APP_DBManager {
     // insertWebSellerProduct(Map("UPC" -> "25555"),"iphone", "Really fucking shiny22", "iphone2232.jpg", "phones", "50000", "www.amazon.com/iphoneLOL", "Amazon", "logo2.jpg", "www.amazon.com")
 
     //searchProducts("iph").toString()
-    retrieveProduct(Map("UPC" -> "2555")).toString
+    //retrieveProduct(Map("UPC" -> "2555")).toString
+    ""
   }
 
-  def login(username : String, pwd : String): Boolean =
+  def login(username : String, pwd : String) =
   {
     mySqlAssistant.login(username, pwd)
   }
@@ -40,9 +41,9 @@ object APP_DBManager {
     mySqlAssistant.searchProducts(name)
   }
 
-  def retrieveProduct(codes :  Map[String, String]): APPModel.Product =
+  def retrieveProduct(codes :  Map[String, String], username : String = ""): APPModel.Product =
   {
-    mySqlAssistant.retrieveProduct(codes)
+    mySqlAssistant.retrieveProduct(codes, username)
   }
 
   def retrieveAllCategories() : List[APPModel.Category] =
@@ -63,6 +64,30 @@ object APP_DBManager {
     mySqlAssistant.retrieveCategoryChildren(category).map(mySqlAssistant.retrievePriceReductionsInCategory(_)).flatten
 
   }
+
+  def getFavoriteCategories(username : String) :List[APPModel.Category]=
+  {
+    mySqlAssistant.getFavoriteCategories(username)
+  }
+
+  def modifyOntology(categoryID : String, ontologyTree : DataCollectionModel.OntologyTree, username : String): Unit =
+  {
+    mySqlAssistant.modifyOntology(categoryID, ontologyTree, username)
+  }
+
+
+  def cacheSentimentTree(ontologyTree : String, sentimentTree : String): Unit =
+  {
+    mySqlAssistant.cacheSentimentTree(ontologyTree,sentimentTree)
+  }
+
+
+  def checkCache(ontologyTree : String): String =
+  {
+    mySqlAssistant.checkCache(ontologyTree)
+  }
+
+
 
 
 

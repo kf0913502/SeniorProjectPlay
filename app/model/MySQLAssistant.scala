@@ -10,6 +10,7 @@ import play.api.db._
 import play.api.Application
 import java.sql.Statement
 import scala.collection.mutable.Queue
+import play.api.libs.json.{Json, JsError}
 case class MySQLAssistant(app : Application) extends DBAssistant{
 
 
@@ -412,17 +413,18 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val stmt = db.createStatement
     val id = productExists(codes)
 
-    val rs = stmt.executeQuery("Select product.name,date_added, c.name from product,`product-category` c where product.codes = '" + id + "' and c.id = `category-id`")
+    val rs = stmt.executeQuery("Select product.name,date_added,c.id, c.parent_id, c.name from product,`product-category` c where product.codes = '" + id + "' and c.id = `category-id`")
     if (!rs.next()) return null
 
     val name = rs.getString("product.name")
     val category = rs.getString("c.name")
     val date = rs.getString("date_added")
-
+    val categoryID = rs.getString("c.id")
+    val categoryParentID = rs.getString("c.parent_id")
     val images = lookup("images", "URL", "product-codes-id", id)
     stmt.close()
     db.close()
-    APPModel.ProductInfo(codes, name, APPModel.Category("","",category),date,images)
+    APPModel.ProductInfo(codes, name, APPModel.Category(categoryID,categoryParentID,category),date,images)
   }
 
   def retrieveWebPostings(codesID : String) : List[APPModel.WebPosting] =
@@ -545,7 +547,7 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
     offers
   }
-  def retrieveProduct(codes :  Map[String, String]): APPModel.Product =
+  def retrieveProduct(codes :  Map[String, String], username : String = ""): APPModel.Product =
   {
 
     val id = productExists(codes)
@@ -560,8 +562,8 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val priceReductions = retrievePriceReductions(id)
     val offers = retrieveOffers(id)
        //TO DO: DO THE SAME FOR LOCAL SELLERS
-
-
+    if (username != "")
+      modifyFavorites(username, productInfo.category.name)
     APPModel.Product(productInfo,desc,postings,List(),customerReviews,expertReviews, offers, relatedProducts, questions, priceReductions)
 
   }
@@ -718,7 +720,7 @@ def retrieveProductsWithReviewSentences(category : String): List[Map[String, Str
     val db = DB.getConnection()(app)
     val stmt = db.createStatement
     val id = productExists(codes)
-    val rs = stmt.executeQuery("select sentences, graphs from `review-sentences` r where r.review_ID in (select id from `customer-review` where  `product-codes` = "+ id + ")")
+    val rs = stmt.executeQuery("select sentences, graphs from `review-sentences` r where r.`product-codes` = '" + id + "' LIMIT 100")
     var reviews = List[List[CoreMap]]()
     var reviewGraphs = List[List[(WeightedGraph#Node, WeightedGraph#Edge)]]()
 
@@ -755,21 +757,125 @@ def retrieveProductsWithReviewSentences(category : String): List[Map[String, Str
   }
 
 
-  def login(username : String, pwd : String) : Boolean =
+  def login(username : String, pwd : String) : APPModel.User =
   {
     val db = DB.getConnection()(app)
     val stmt = db.createStatement
 
     val rs = stmt.executeQuery("select * from `user-account` where username = '" + username + "' and password = '" + pwd + "'")
+    var user : APPModel.User= null
+    if (rs.next())
+      user = APPModel.User(rs.getString("username"),rs.getString("password"),rs.getString("firstname"),rs.getString("lastname"),rs.getString("email"))
+    else
+     user =  null
+
+    stmt.close()
+    db.close()
+
+    user
+  }
+
+
+  def modifyFavorites(username : String, categoryName : String): Unit =
+  {
+    val db = DB.getConnection()(app)
+    val stmt = db.createStatement
+
+
+    var rs = stmt.executeQuery("select * from `favorite-categories` where username = '" + username+ "' and categoryName = '" + categoryName + "'")
 
     if (rs.next())
-      true
+    {
+      stmt.executeUpdate("UPDATE `favorite-categories` SET frequency = frequency + 1 where username = '" + username + "' and categoryName = '" + categoryName + "'")
+    }
     else
-      false
+    {
+      rs = stmt.executeQuery("select count(*) from `favorite-categories` where username = '" + username + "'")
+      rs.next()
+      if (rs.getString("count(*)").toInt == 3)
+      {
+        rs = stmt.executeQuery("select min(frequency), categoryName from `favorite-categories` where username = '" + username + "'")
+        rs.next()
+        val oldCategoryName = rs.getString("categoryName")
+
+        stmt.executeUpdate("UPDATE `favorite-categories` SET frequency = 1, categoryName = '" + categoryName + "' where categoryName = '" + oldCategoryName + "'")
+      }
+      else
+      {
+        insertQuery("favorite-categories", List("frequency", "categoryName", "username"), List("1", categoryName, username))
+      }
+    }
+
+    stmt.close()
+    db.close()
+  }
+  def retrieveCategory(categoryName : String) : APPModel.Category=
+  {
+    val db = DB.getConnection()(app)
+    val stmt = db.createStatement
+
+    val rs = stmt.executeQuery("select * from `product-category` where name = '" + categoryName + "'")
+
+    if (rs.next())
+      return APPModel.Category(rs.getString("id"),rs.getString("parent_id"),rs.getString("name"))
+
+    throw new Exception("category not found ")
+
+  }
+  def getFavoriteCategories(username : String)  =
+  {
+    lookup("favorite-categories","categoryName","username", username).map(retrieveCategory(_))
+  }
+
+  def modifyOntology(categoryID : String, ontologyTree : DataCollectionModel.OntologyTree, username : String): Unit =
+  {
+    val nodes = ontologyTree.getBFSNodes()
+    val db = DB.getConnection()(app)
+    val stmt = db.createStatement
+    stmt.executeUpdate("UPDATE `ontology-nodes` set support = support -1 where `category-id` = '" + ontologyTree.category + "'")
+    nodes.foreach(n =>
+    {
+      val rs = stmt.executeQuery("select * from `ontology-features` onf, `ontology-nodes` onn where onf.nodeID = onn.id and onn.`category-id`  = '" + ontologyTree.category + "' and onf.feature = '" + n.features(0) + "'")
+      if (rs.next)
+        stmt.executeUpdate("UPDATE `ontology-nodes` SET support = support + 2 where id in (select nodeID from `ontology-features` where feature = '" + n.features(0) + "')")
+      else
+      {
+        val key = insertQuery("ontology-nodes",List("support", "category-id"),List("1",ontologyTree.category),true)
+        insertQuery("ontology-features",List("feature", "nodeID"),List(n.features(0), key))
+      }
+    })
+
+    db.close()
+    stmt.close()
 
   }
 
 
+  def cacheSentimentTree(ontologyTree : String, sentimentTree : String): Unit =
+  {
+    val db = DB.getConnection()(app)
+    val stmt = db.createStatement
+    println(ontologyTree)
+    stmt.executeUpdate("Insert INTO `sentiment-cache` (`tree-hash`,`result`) VALUES (sha1( '" + ontologyTree + "'),'" + sentimentTree + "')")
+    stmt.close()
+    db.close()
 
+
+
+  }
+
+
+  def checkCache(ontologyTree : String): String =
+  {
+    val db = DB.getConnection()(app)
+    val stmt = db.createStatement
+    println("a" + ontologyTree)
+    val rs = stmt.executeQuery("select result from `sentiment-cache` where `tree-hash` = sha1('" + ontologyTree + "')")
+
+    if (rs.next())
+      return rs.getString("result")
+    else
+    ""
+  }
 
 }

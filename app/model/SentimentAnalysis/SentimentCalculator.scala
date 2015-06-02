@@ -13,16 +13,18 @@ object SentimentCalculator {
 
    var wrapper = new nlpWrapper("tokenize, ssplit, pos, lemma, parse, sentiment")
 
-    def compareProducts(categoryID : String, ontologyTree : DataCollectionModel.OntologyTree)=
+    def compareProducts(categoryID : String, ontologyTree : DataCollectionModel.OntologyTree, username : String = "") =
     {
+
+        APP_DBManager.modifyOntology(categoryID, ontologyTree, username)
         val productCodes = DataCollection_DBManager.retrieveProductsWithReviewSentences(categoryID)
         val nodes = ontologyTree.getBFSNodes()
         productCodes.map(
         code => {
           nodes.foreach(n => n.sentiment = 0.0)
-          Json.toJson(APPModel.ProductRanking(calcSentiment(code, ontologyTree), code))
-
-        })
+          val results = calcSentiment(code, ontologyTree)
+          (results.root.sentiment,Json.toJson(APPModel.ProductRanking(results, APP_DBManager.retrieveProduct(code).info)))
+        }).sortBy(_._1).reverse.map(_._2)
 
     }
         //.sortBy(_._2.root.sentiment)

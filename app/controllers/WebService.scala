@@ -20,11 +20,13 @@ object WebService extends Controller{
 
 
   def getProduct(code : String, codeType : String) = Action{
-    val result = APP_DBManager.retrieveProduct(Map(codeType -> code))
-    if (result != null)
-      Ok(Json.toJson(result))
-    else 
-      NotFound("")
+    request => {
+      val result = APP_DBManager.retrieveProduct(Map(codeType -> code), request.session.get("user").get)
+      if (result != null)
+        Ok(Json.toJson(result))
+      else
+        NotFound("")
+    }
   }
 
 
@@ -73,6 +75,12 @@ object WebService extends Controller{
         Ok({DataCollection_DBManager.insertWebSeller(modelJsonObject.get); "OK"})
     }
 
+  def getFavoriteCategories()=
+    Action{
+      response =>
+        Ok(Json.toJson(APP_DBManager.getFavoriteCategories(response.session.get("user").get)))
+
+    }
   def insertWebOffer() =
     Action {
       response =>
@@ -107,7 +115,8 @@ object WebService extends Controller{
 
       //Ok(DataCollection_DBManager.retrieveOntologyTree("37").toString)
       //Ok(SentimentAnalysis.SentimentCalculator.calcSentiment(Map("UPC" -> "013803244281")).toString())
-      response.session.get("connected").map{msg => Ok(msg + " me")}.get
+      //response.session.get("connected").map{msg => Ok(msg + " me")}.get
+      Ok(response.session.get("user").get)
   }
 
 
@@ -194,7 +203,7 @@ object WebService extends Controller{
   def calculateSentiment(code : String, codeType : String) =
     Action{
       response =>
-        val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+        val parsedJson = response.body.asJson.get
         val modelJsonObject = parsedJson.validate[DataCollectionModel.OntologyTree]
         Ok(Json.toJson(SentimentAnalysis.SentimentCalculator.calcSentiment(Map(codeType -> code), modelJsonObject.get)))
     }
@@ -203,9 +212,17 @@ object WebService extends Controller{
   def compareProducts(category : String) =
   Action{
     response =>
-      val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
-      val modelJsonObject = parsedJson.validate[DataCollectionModel.OntologyTree]
-      Ok(Json.toJson(SentimentAnalysis.SentimentCalculator.compareProducts(category,modelJsonObject.get)))
+      println(response.body.asJson.get)
+      val parsedJson = response.body.asJson.get
+
+      val cachedResult = APP_DBManager.checkCache(parsedJson.toString)
+      if (cachedResult != "") Ok(Json.parse(cachedResult))
+      else {
+        val modelJsonObject = parsedJson.validate[DataCollectionModel.OntologyTree]
+        val x = Json.toJson(SentimentAnalysis.SentimentCalculator.compareProducts(category, modelJsonObject.get))
+        APP_DBManager.cacheSentimentTree(parsedJson.toString(), x.toString())
+        Ok(x)
+      }
   }
 
   def getPriceReductionsInCategory(category : String) =
@@ -217,9 +234,9 @@ object WebService extends Controller{
   def login(username : String, pwd : String)  =
     Action{
       response =>
-
-        if (APP_DBManager.login(username, pwd))
-          Ok("")
+        val user = APP_DBManager.login(username, pwd)
+        if (user != null)
+          Ok(Json.toJson(user)).withSession("user" -> user.username)
         else
           Unauthorized("")
 
@@ -228,9 +245,9 @@ object WebService extends Controller{
   def signup() =
   Action{
     response =>
-      val parsedJson = Json.parse(response.body.asText.getOrElse("none"))
+      val parsedJson = response.body.asJson.get
       val modelJsonObject = parsedJson.validate[APPModel.User]
-      Ok({APP_DBManager.insertUserAccount(modelJsonObject.get); "OK"})
+      Ok({APP_DBManager.insertUserAccount(modelJsonObject.get); parsedJson})
   }
 
   }

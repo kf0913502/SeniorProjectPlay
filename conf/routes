@@ -36,4 +36,6 @@ GET         /getReductionsInCategory                controllers.WebService.getRe
 GET         /login                                  controllers.WebService.login(username : String, pwd : String)
 POST        /signup                                 controllers.WebService.signup()
 GET         /getFavoriteCategories                  controllers.WebService.getFavoriteCategories()
+GET         /getCategoriesWithOffers                controllers.WebService.getCategoriesWithOffers()
+GET         /generateReveiwSentences                controllers.WebService.generateReviewSentences()
 

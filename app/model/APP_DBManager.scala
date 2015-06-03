@@ -88,6 +88,12 @@ object APP_DBManager {
   }
 
 
+  def getCategoriesWithOffers(): List[(Int, Category)] =
+  {
+    mySqlAssistant.retrieveAllCategoriesWithOffers()
+  }
+
+
 
 
 

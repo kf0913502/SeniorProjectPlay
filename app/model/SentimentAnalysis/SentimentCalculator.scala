@@ -53,7 +53,7 @@ object SentimentCalculator {
 
    }
 
-   def getSentences(review : DataCollectionModel.CustomerReview): List[CoreMap] =
+   def getSentences(review : APPModel.CustomerReview): List[CoreMap] =
    {
 
       wrapper.getSentences(review.text)

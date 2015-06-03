@@ -103,7 +103,62 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
 
 
 
+  def generateReviewSentences(): Unit =
+  {
+    val db = DB.getConnection()(app)
+    val stmt = db.createStatement()
 
+    val allProducts = lookup("product-codes","id","","")
+
+    allProducts.foreach(x => {
+      retrieveCustomerReviews(x).foreach(y => {
+        var sentences = SentimentCalculator.getSentences(y)
+        var graphs = SentimentCalculator.getGraphs(sentences)
+
+        /*Should be in class sentence;*/
+        var sentenceOutputStream = new ByteArrayOutputStream()
+        var sentenceOOutputStream = new ObjectOutputStream(sentenceOutputStream)
+        sentenceOOutputStream.writeObject(sentences)
+        var sentencesBytes = sentenceOutputStream.toByteArray()
+        /*Should be in class sentence*/
+
+        /*Should be in class List[Graphs];*/
+        var graphsOutputStream = new ByteArrayOutputStream()
+        var graphsOOutputStream = new ObjectOutputStream(graphsOutputStream)
+        graphsOOutputStream.writeObject(graphs.map(x => (x.nodes, x.edges)))
+        var graphsBytes = graphsOutputStream.toByteArray()
+        /*Should be in class List[Graphs]*/
+
+
+        var graphsInputStream = new ByteArrayInputStream(graphsBytes)
+        var sentencesInputStream = new ByteArrayInputStream(sentencesBytes)
+
+        val db = DB.getConnection()(app)
+        val pstmt = db.prepareStatement("INSERT INTO `review-sentences` VALUES(?,?," + y.id + ", " + x + ")")
+        pstmt.setBinaryStream(1, sentencesInputStream, sentencesBytes.length)
+        pstmt.setBinaryStream(2, graphsInputStream, graphsBytes.length)
+        pstmt.executeUpdate()
+        pstmt.close()
+
+
+        sentences = null
+        graphs = null
+        graphsInputStream = null
+        sentencesInputStream = null
+
+        graphsOutputStream = null
+        graphsOOutputStream = null
+        graphsBytes = null
+
+
+
+        sentencesBytes = null
+        sentenceOOutputStream = null
+        sentenceOutputStream = null
+    })})
+
+    db.close()
+  }
 
   /**********************************DATA INSERTION***********************************/
 
@@ -116,10 +171,6 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
   def insertCustomerReview(review : DataCollectionModel.CustomerReview)
   {
 
-    var sentences = SentimentCalculator.getSentences(review)
-    var graphs = SentimentCalculator.getGraphs(sentences)
-
-
     review.text = review.text.replace("'", "")
 //    println(review.text)
     val id = productExists(review.codes)
@@ -131,46 +182,6 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val key = insertQuery(TN, fields, values,true)
 
 
-    /*Should be in class sentence;*/
-    var sentenceOutputStream = new ByteArrayOutputStream()
-    var sentenceOOutputStream = new ObjectOutputStream(sentenceOutputStream)
-    sentenceOOutputStream.writeObject(sentences)
-    var sentencesBytes = sentenceOutputStream.toByteArray()
-    /*Should be in class sentence*/
-
-    /*Should be in class List[Graphs];*/
-    var graphsOutputStream = new ByteArrayOutputStream()
-    var graphsOOutputStream = new ObjectOutputStream(graphsOutputStream)
-    graphsOOutputStream.writeObject(graphs.map(x => (x.nodes, x.edges)))
-    var graphsBytes = graphsOutputStream.toByteArray()
-    /*Should be in class List[Graphs]*/
-
-
-    var graphsInputStream = new ByteArrayInputStream(graphsBytes)
-    var sentencesInputStream = new ByteArrayInputStream(sentencesBytes)
-
-    val db = DB.getConnection()(app)
-    val pstmt = db.prepareStatement("INSERT INTO `review-sentences` VALUES(?,?," + key + ")" )
-    pstmt.setBinaryStream(1, sentencesInputStream, sentencesBytes.length)
-    pstmt.setBinaryStream(2, graphsInputStream, graphsBytes.length)
-    pstmt.executeUpdate()
-    pstmt.close()
-    db.close()
-
-    sentences = null
-    graphs = null
-    graphsInputStream = null
-    sentencesInputStream = null
-
-    graphsOutputStream = null
-    graphsOOutputStream = null
-    graphsBytes = null
-
-
-
-    sentencesBytes = null
-    sentenceOOutputStream = null
-    sentenceOutputStream = null
   }
 
 
@@ -447,9 +458,9 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     val stmt = db.createStatement
     var customerReviews : List[APPModel.CustomerReview] = List()
 
-    val rs = stmt.executeQuery("select `title`,`review-text`, `date-added`, source from `customer-review` where `product-codes` = '" + codesID + "'")
+    val rs = stmt.executeQuery("select id, `title`,`review-text`, `date-added`, source from `customer-review` where `product-codes` = '" + codesID + "'")
     while(rs.next())
-      customerReviews = customerReviews :+ APPModel.CustomerReview(rs.getString("title"),rs.getString("review-text"),rs.getString("date-added"),rs.getString("source"))
+      customerReviews = customerReviews :+ APPModel.CustomerReview(rs.getString("title"),rs.getString("review-text"),rs.getString("date-added"),rs.getString("source"),rs.getString("id"))
 
     stmt.close()
     db.close()
@@ -584,6 +595,25 @@ case class MySQLAssistant(app : Application) extends DBAssistant{
     //TODO: 1. see how to display images for categories 2. see how to make use of parent category
   }
 
+
+  def retrieveAllCategoriesWithOffers() : List[(Int, APPModel.Category)] =
+  {
+    val db = DB.getConnection()(app)
+    val stmt = db.createStatement
+    val rs = stmt.executeQuery("select (select count(*) from offer_products,product where offer_products.`product-codes` = product.codes and `category-id` = pc.id) as `offerCount`, pc.parent_id, pc.id, pc.name, image from `product-category` pc where (select count(*) from offer_products,product where offer_products.`product-codes` = product.codes and `category-id` = pc.id) > 0")
+
+    var results = List[(Int, APPModel.Category)]()
+    while(rs.next())
+      results :+= (rs.getString("offerCount").toInt,APPModel.Category(rs.getString("id"),rs.getString("parent_id"),rs.getString("name")))
+
+
+    db.close()
+    rs.close()
+    results
+    //TODO: 1. see how to display images for categories 2. see how to make use of parent category
+  }
+
+
   def retrieveCategoryChildren(categoryName : String) :  List[String] =
   {
 
@@ -712,8 +742,11 @@ def retrieveProductsWithReviewSentences(category : String): List[Map[String, Str
   {
     result +:= rs.getString("co.id")
   }
-
+  stmt.close()
+  db.close()
   result.map(retrieveProductcodes(_)).map(retrieveProduct(_)).filter(_.info.category.name == category).map(_.info.codes)
+
+
 }
   def retrieveReveiwsSentences(codes : Map[String, String]) :  List[List[(CoreMap, WeightedGraph)]]=
   {
@@ -817,7 +850,15 @@ def retrieveProductsWithReviewSentences(category : String): List[Map[String, Str
     val rs = stmt.executeQuery("select * from `product-category` where name = '" + categoryName + "'")
 
     if (rs.next())
-      return APPModel.Category(rs.getString("id"),rs.getString("parent_id"),rs.getString("name"))
+    {
+      val id = rs.getString("id")
+      val parentID = rs.getString("parent_id")
+      val name = rs.getString("name")
+      stmt.close()
+      db.close()
+      return APPModel.Category(id,parentID,name)
+    }
+
 
     throw new Exception("category not found ")
 
@@ -873,9 +914,19 @@ def retrieveProductsWithReviewSentences(category : String): List[Map[String, Str
     val rs = stmt.executeQuery("select result from `sentiment-cache` where `tree-hash` = sha1('" + ontologyTree + "')")
 
     if (rs.next())
-      return rs.getString("result")
+    {
+      val result = rs.getString("result")
+      stmt.close()
+      db.close()
+      return result
+    }
     else
-    ""
+    {
+
+      stmt.close()
+      db.close()
+      ""
+    }
   }
 
 }

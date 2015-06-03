@@ -18,6 +18,10 @@ object WebService extends Controller{
     Ok(Json.toJson(APP_DBManager.searchProducts(name)) )
   }
 
+  def generateReviewSentences()
+  = Action{Ok("")}
+
+
 
   def getProduct(code : String, codeType : String) = Action{
     request => {
@@ -248,6 +252,15 @@ object WebService extends Controller{
       val parsedJson = response.body.asJson.get
       val modelJsonObject = parsedJson.validate[APPModel.User]
       Ok({APP_DBManager.insertUserAccount(modelJsonObject.get); parsedJson})
+  }
+
+
+  def getCategoriesWithOffers()=
+  Action{
+    response =>
+      var result = APP_DBManager.getCategoriesWithOffers()
+
+      Ok(Json.parse("[" + result.map(x => "{\"offerCount\": " + x._1 + ", \"offers\": " + Json.toJson(x._2).toString() + "}").mkString(",")+ "]"))
   }
 
   }
